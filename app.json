@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Kabelcontrole 20 kV",
+    "slug": "kabelcontrole-20kv",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "nl.projectbeheerst.kabelcontrole20kv"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "nl.projectbeheerst.kabelcontrole20kv"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "De camera wordt gebruikt om metingen in de kabelsleuf als bewijs vast te leggen.",
+          "photosPermission": "Foto’s worden gebruikt als bewijs bij registraties."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "De positie wordt bij elke registratie vastgelegd, zodat aantoonbaar is waar gemeten is."
+        }
+      ]
+    ],
+    "scheme": "kabelcontrole20kv"
+  }
+}
