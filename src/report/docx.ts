@@ -57,6 +57,7 @@ export async function reportDocx(report: Report): Promise<Uint8Array> {
       ['Projectnummer', p.number],
       ['Opdrachtgever', p.client],
       ['Locatie', p.location],
+      ['Normset', `${p.gridOperator} (uitgangspunt, te verifiëren met de specificatie van de netbeheerder)`],
       ['Opgesteld', `${report.generatedAt}${report.generatedBy ? ` door ${report.generatedBy}` : ''}`],
     ].map(([k, v]) => new Paragraph({ children: [new TextRun({ text: `${k}: `, bold: true }), new TextRun(v)] })),
   ];
@@ -89,6 +90,35 @@ export async function reportDocx(report: Report): Promise<Uint8Array> {
       );
     }
     children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+
+    if (s.history.length) {
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun('Historie van alle registraties')] }));
+      const hw = [14, 18, 12, 18, 16, 22];
+      children.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              tableHeader: true,
+              children: ['Tijdstip', 'Eis', 'Toetsing', 'Status registratie', 'Door', 'Toelichting'].map((h, i) =>
+                cell([h], { header: true, width: hw[i] }),
+              ),
+            }),
+            ...s.history.map(
+              (h) =>
+                new TableRow({
+                  cantSplit: true,
+                  children: [h.recordedAt, h.check, h.result, h.state, h.recordedBy, h.note].map((v, i) => cell([v], { width: hw[i] })),
+                }),
+            ),
+          ],
+        }),
+      );
+    }
+    if (s.releaseLog.length) {
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun('Vrijgavehistorie')] }));
+      for (const line of s.releaseLog) children.push(new Paragraph(line));
+    }
 
     const images: (ImageRun | TextRun)[] = [];
     for (const r of s.rows) {

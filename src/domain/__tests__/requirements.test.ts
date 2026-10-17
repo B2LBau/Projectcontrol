@@ -1,5 +1,5 @@
 import { evaluateRegistration, getRequirement, REQUIREMENTS, resolveParams } from '../requirements';
-import { sectionState } from '../status';
+import { registrationRole, sectionState } from '../status';
 import type { Registration, Section } from '../types';
 
 function evaluate(id: string, values: Record<string, number | boolean | string>, photos = 5, overrides?: Record<string, number>) {
@@ -32,9 +32,39 @@ describe('eisen', () => {
     expect(evaluate('dekking', { ligging: 'berm', dekking: 0.5 }, 0).status).toBe('voldoet_niet');
   });
 
-  it('berekent de minimale buigstraal uit de kabeldiameter', () => {
-    expect(evaluate('buigstraal', { diameter: 40, straal: 600 }).status).toBe('voldoet');
-    expect(evaluate('buigstraal', { diameter: 40, straal: 590 }).status).toBe('voldoet_niet');
+  it('toetst de buigstraal aan de fabrikantwaarde, of de strengere netbeheerderseis', () => {
+    const base = { kabeltype: '3x1x240 Al', factorFabrikant: 15, diameter: 40 };
+    expect(evaluate('buigstraal', { ...base, straal: 600 }).status).toBe('voldoet');
+    expect(evaluate('buigstraal', { ...base, straal: 590 }).status).toBe('voldoet_niet');
+    expect(evaluate('buigstraal', { ...base, straal: 600 }, 5, { factorNetbeheerder: 20 }).status).toBe('voldoet_niet');
+    expect(evaluate('buigstraal', { ...base, straal: 800 }, 5, { factorNetbeheerder: 20 }).status).toBe('voldoet');
+    expect(evaluate('buigstraal', { diameter: 40, straal: 800 }).status).toBe('onvolledig');
+  });
+
+  it('toetst de binnendiameter en afdichting van een mantelbuis', () => {
+    const base = { kabeldiameter: 80, lengte: 12, doorgang: true, afgedicht: true };
+    expect(evaluate('mantelbuis', { ...base, binnendiameter: 125 }).status).toBe('voldoet');
+    expect(evaluate('mantelbuis', { ...base, binnendiameter: 110 }).status).toBe('voldoet_niet');
+    expect(evaluate('mantelbuis', { ...base, binnendiameter: 125, afgedicht: false }).status).toBe('voldoet_niet');
+  });
+
+  it('toetst de nauwkeurigheid van de inmeting', () => {
+    const base = { punt: 'P1', x: 155000, y: 463000, z: -0.9, methode: 'rtk' };
+    expect(evaluate('inmeting', { ...base, nauwkeurigheid: 3 }).status).toBe('voldoet');
+    expect(evaluate('inmeting', { ...base, nauwkeurigheid: 8 }).status).toBe('voldoet_niet');
+    expect(evaluate('inmeting', { punt: 'P1', nauwkeurigheid: 3 }).status).toBe('onvolledig');
+  });
+
+  it('toetst laagdikte en verdichtingsgraad', () => {
+    const base = { methode: 'trilplaat', herstel: true };
+    expect(evaluate('verdichting', { ...base, laagdikte: 30, verdichtingsgraad: 96 }).status).toBe('voldoet');
+    expect(evaluate('verdichting', { ...base, laagdikte: 40, verdichtingsgraad: 96 }).status).toBe('voldoet_niet');
+  });
+
+  it('toetst de aardverspreidingsweerstand', () => {
+    const base = { locatie: 'RS 12', meetmethode: 'driepuntsmeting', schermen: true };
+    expect(evaluate('aarding', { ...base, weerstand: 2.5 }).status).toBe('voldoet');
+    expect(evaluate('aarding', { ...base, weerstand: 4 }).status).toBe('voldoet_niet');
   });
 
   it('berekent de toelaatbare trekkracht', () => {
@@ -95,5 +125,29 @@ describe('vrijgave aanvullen', () => {
     const state = sectionState(section, [reg('dekking', 'voldoet', '2026-01-02'), reg('dekking', 'voldoet_niet', '2026-01-03')]);
     expect(state.readyForBackfill).toBe(false);
     expect(state.failed).toBe(1);
+  });
+});
+
+describe('intrekken', () => {
+  const r = (id: string, recordedAt: string, withdrawn?: boolean): Registration => ({
+    id,
+    sectionId: 's1',
+    checkId: 'dekking',
+    values: {},
+    params: {},
+    evaluation: { status: 'voldoet', details: [] },
+    photos: [],
+    location: null,
+    recordedBy: 'test',
+    recordedAt,
+    remark: '',
+    withdrawn: withdrawn ? { by: 'WV', at: '2026-01-05', reason: 'verkeerde sectie' } : undefined,
+  });
+
+  it('laat een ingetrokken registratie niet meetellen, maar bewaart haar', () => {
+    const all = [r('a', '2026-01-02'), r('b', '2026-01-03', true)];
+    expect(registrationRole(all[0], all)).toBe('actueel');
+    expect(registrationRole(all[1], all)).toBe('ingetrokken');
+    expect(registrationRole(r('c', '2026-01-01'), [...all, r('c', '2026-01-01')])).toBe('vervangen');
   });
 });

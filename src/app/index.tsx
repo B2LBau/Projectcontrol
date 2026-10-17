@@ -15,9 +15,9 @@ export default function Projects() {
         <ActivityIndicator size="large" color={colors.primary} />
       ) : (
         <>
-          {!data.settings.userName ? (
+          {!data.settings.userName || !data.settings.role ? (
             <Card style={{ backgroundColor: colors.openBg }}>
-              <Text style={{ fontSize: 15 }}>Vul eerst je naam in. Die wordt bij elke registratie vastgelegd.</Text>
+              <Text style={{ fontSize: 15 }}>Vul eerst je naam en rol in. Die worden bij elke registratie vastgelegd.</Text>
               <Button title="Naar instellingen" variant="secondary" onPress={() => router.push('/settings')} />
             </Card>
           ) : null}

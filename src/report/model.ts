@@ -1,5 +1,5 @@
 import { getRequirement } from '../domain/requirements';
-import { sectionState, STATUS_LABEL } from '../domain/status';
+import { REGISTRATION_ROLE_LABEL, registrationRole, sectionState, STATUS_LABEL } from '../domain/status';
 import type { AppData, Project, Registration } from '../domain/types';
 import { formatPosition } from '../services/location';
 
@@ -15,12 +15,24 @@ export type ReportRow = {
   photos: string[];
 };
 
+/** Elke registratie, ook vervangen en ingetrokken, zodat het dossier de volledige historie toont. */
+export type HistoryRow = {
+  check: string;
+  recordedAt: string;
+  recordedBy: string;
+  result: string;
+  state: string;
+  note: string;
+};
+
 export type ReportSection = {
   name: string;
   range: string;
   summary: string;
   release: string;
   rows: ReportRow[];
+  history: HistoryRow[];
+  releaseLog: string[];
 };
 
 export type Report = {
@@ -66,6 +78,23 @@ export function buildReport(data: AppData, projectId: string): Report {
           ? `Vrijgegeven voor aanvullen door ${s.release.by} op ${formatDateTime(s.release.at)}`
           : 'Nog niet vrijgegeven voor aanvullen',
         rows: state.checks.map((c) => row(c.checkId, c.status, c.latest)),
+        history: data.registrations
+          .filter((r) => r.sectionId === s.id)
+          .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))
+          .map((r) => ({
+            check: getRequirement(r.checkId).title,
+            recordedAt: formatDateTime(r.recordedAt),
+            recordedBy: r.recordedBy,
+            result: STATUS_LABEL[r.evaluation.status],
+            state: REGISTRATION_ROLE_LABEL[registrationRole(r, data.registrations)],
+            note: r.withdrawn
+              ? `Ingetrokken door ${r.withdrawn.by} op ${formatDateTime(r.withdrawn.at)}: ${r.withdrawn.reason}`
+              : `${r.photos.length} foto('s)`,
+          })),
+        releaseLog: (s.releaseLog ?? []).map(
+          (e) =>
+            `${formatDateTime(e.at)} – ${e.action === 'vrijgegeven' ? 'Vrijgegeven' : 'Vrijgave ingetrokken'} door ${e.by}${e.reason ? `: ${e.reason}` : ''}`,
+        ),
       };
     });
   return {

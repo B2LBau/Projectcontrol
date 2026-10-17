@@ -40,6 +40,8 @@ export type RequirementDef = {
   evaluate: (values: InputValues, params: ParamValues) => Evaluation;
 };
 
+export type Role = 'grondwerk' | 'monteur' | 'werkverantwoordelijke' | 'toezichthouder' | 'beproever';
+
 export type GeoPoint = { latitude: number; longitude: number; accuracy: number | null };
 
 export type Project = {
@@ -48,6 +50,8 @@ export type Project = {
   number: string;
   client: string;
   location: string;
+  /** Netbeheerder waarvan de normset de standaardwaarden levert. */
+  gridOperator: string;
   createdAt: string;
   /** Afwijkende normwaarden per eis: paramOverrides[eisId][paramKey]. */
   paramOverrides: Record<string, ParamValues>;
@@ -63,7 +67,11 @@ export type Section = {
   requiredChecks: string[];
   createdAt: string;
   release?: { by: string; at: string };
+  /** Alle vrijgaven en intrekkingen; wordt nooit ingekort. */
+  releaseLog?: ReleaseEvent[];
 };
+
+export type ReleaseEvent = { action: 'vrijgegeven' | 'ingetrokken'; by: string; at: string; reason?: string };
 
 export type Registration = {
   id: string;
@@ -78,11 +86,14 @@ export type Registration = {
   recordedBy: string;
   recordedAt: string;
   remark: string;
+  /** Registraties worden nooit verwijderd, alleen ingetrokken met reden. */
+  withdrawn?: { by: string; at: string; reason: string };
 };
 
 export type Settings = {
   userName: string;
   company: string;
+  role: Role | '';
 };
 
 export type AppData = {

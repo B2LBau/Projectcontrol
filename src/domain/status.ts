@@ -17,11 +17,14 @@ export type SectionState = {
   failed: number;
 };
 
-/** De laatste registratie per eis telt; een herstelde afwijking wordt zo opnieuw aangetoond. */
+/**
+ * De laatste niet-ingetrokken registratie per eis telt; een herstelde afwijking wordt zo
+ * opnieuw aangetoond. Eerdere registraties blijven bewaard als historie.
+ */
 export function latestRegistration(registrations: Registration[], sectionId: string, checkId: string) {
   let latest: Registration | undefined;
   for (const r of registrations) {
-    if (r.sectionId !== sectionId || r.checkId !== checkId) continue;
+    if (r.sectionId !== sectionId || r.checkId !== checkId || r.withdrawn) continue;
     if (!latest || r.recordedAt > latest.recordedAt) latest = r;
   }
   return latest;
@@ -50,3 +53,17 @@ export const STATUS_LABEL: Record<CheckState['status'], string> = {
   onvolledig: 'Onvolledig',
   ontbreekt: 'Nog aantonen',
 };
+
+export type RegistrationRole = 'actueel' | 'vervangen' | 'ingetrokken';
+
+export const REGISTRATION_ROLE_LABEL: Record<RegistrationRole, string> = {
+  actueel: 'Actueel',
+  vervangen: 'Vervangen door nieuwere registratie',
+  ingetrokken: 'Ingetrokken',
+};
+
+/** Plaats van een registratie in de historie van haar eis. */
+export function registrationRole(r: Registration, registrations: Registration[]): RegistrationRole {
+  if (r.withdrawn) return 'ingetrokken';
+  return latestRegistration(registrations, r.sectionId, r.checkId)?.id === r.id ? 'actueel' : 'vervangen';
+}

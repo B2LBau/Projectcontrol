@@ -12,7 +12,12 @@ export default function ProjectScreen() {
   const { data, deleteProject } = useStore();
   const [busy, setBusy] = useState(false);
   const project = data.projects.find((p) => p.id === id);
-  if (!project) return <Screen><Muted>Project niet gevonden.</Muted></Screen>;
+  if (!project)
+    return (
+      <Screen>
+        <Muted>Project niet gevonden.</Muted>
+      </Screen>
+    );
   const sections = data.sections.filter((s) => s.projectId === project.id);
 
   const run = async (fn: () => Promise<void>) => {
@@ -31,10 +36,13 @@ export default function ProjectScreen() {
       <Stack.Screen options={{ title: project.name }} />
       <Card>
         <Muted>{[project.number, project.client, project.location].filter(Boolean).join(' · ') || 'Geen projectgegevens'}</Muted>
+        <Muted>Normset: {project.gridOperator} (uitgangspunt, nog te verifiëren met de specificatie van de netbeheerder)</Muted>
       </Card>
 
       <H2>Tracédelen</H2>
-      {sections.length === 0 ? <Muted>Deel het tracé op in stukken die je per keer open hebt liggen, bijv. per 50 m of per mofput.</Muted> : null}
+      {sections.length === 0 ? (
+        <Muted>Deel het tracé op in stukken die je per keer open hebt liggen, bijv. per 50 m of per mofput.</Muted>
+      ) : null}
       {sections.map((s) => {
         const st = sectionState(s, data.registrations);
         return (
@@ -60,31 +68,42 @@ export default function ProjectScreen() {
           </Card>
         );
       })}
-      <Button title="+ Tracédeel toevoegen" onPress={() => router.push({ pathname: '/section/new', params: { projectId: project.id } })} />
+      <Button
+        title="+ Tracédeel toevoegen"
+        onPress={() => router.push({ pathname: '/section/new', params: { projectId: project.id } })}
+      />
 
       <H2>Bewijsdossier</H2>
       <Button title="Exporteer als PDF" disabled={busy} onPress={() => run(() => exportPdf(data, project.id))} />
       <Button title="Exporteer als Word (.docx)" disabled={busy} onPress={() => run(() => exportDocx(data, project.id))} />
 
       <H2>Project</H2>
-      <Button title="Normwaarden voor dit project" variant="secondary" onPress={() => router.push({ pathname: '/project/[id]/eisen', params: { id: project.id } })} />
       <Button
-        title="Project verwijderen"
-        variant="danger"
-        onPress={() =>
-          Alert.alert('Project verwijderen?', 'Alle tracédelen, registraties en foto’s worden verwijderd.', [
-            { text: 'Annuleren', style: 'cancel' },
-            {
-              text: 'Verwijderen',
-              style: 'destructive',
-              onPress: () => {
-                deleteProject(project.id);
-                router.back();
-              },
-            },
-          ])
-        }
+        title="Normwaarden voor dit project"
+        variant="secondary"
+        onPress={() => router.push({ pathname: '/project/[id]/eisen', params: { id: project.id } })}
       />
+      {data.registrations.some((r) => sections.some((s) => s.id === r.sectionId)) ? (
+        <Muted>Een project met registraties kan niet worden verwijderd; alle registraties blijven bewaard.</Muted>
+      ) : (
+        <Button
+          title="Project verwijderen"
+          variant="danger"
+          onPress={() =>
+            Alert.alert('Project verwijderen?', 'Het project en zijn (lege) tracédelen worden verwijderd.', [
+              { text: 'Annuleren', style: 'cancel' },
+              {
+                text: 'Verwijderen',
+                style: 'destructive',
+                onPress: () => {
+                  deleteProject(project.id);
+                  router.back();
+                },
+              },
+            ])
+          }
+        />
+      )}
     </Screen>
   );
 }

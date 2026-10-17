@@ -1,8 +1,9 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, Text, View } from 'react-native';
 
 import { Button, Card, Choice, colors, Field, H2, Muted, Screen, StatusBadge } from '../../../components/ui';
+import { signature } from '../../../domain/roles';
 import { evaluateRegistration, getRequirement, resolveParams } from '../../../domain/requirements';
 import type { GeoPoint, InputDef, InputValues } from '../../../domain/types';
 import { currentPosition, formatPosition } from '../../../services/location';
@@ -76,7 +77,9 @@ export default function RegistrationScreen() {
 
   // Foto's die genomen zijn maar niet bij een opgeslagen registratie horen, opruimen.
   const pending = useRef<{ photos: string[]; saved: boolean }>({ photos: [], saved: false });
-  pending.current.photos = photos;
+  useEffect(() => {
+    pending.current.photos = photos;
+  }, [photos]);
   useEffect(
     () => () => {
       if (!pending.current.saved) deletePhotos(pending.current.photos);
@@ -84,15 +87,12 @@ export default function RegistrationScreen() {
     [],
   );
 
-  const values: InputValues = useMemo(() => {
-    const v: InputValues = {};
-    for (const def of req.inputs) {
-      const r = raw[def.key];
-      if (r === undefined) continue;
-      v[def.key] = def.kind === 'number' ? parseNumber(String(r)) : r;
-    }
-    return v;
-  }, [raw, req]);
+  const values: InputValues = {};
+  for (const def of req.inputs) {
+    const r = raw[def.key];
+    if (r === undefined) continue;
+    values[def.key] = def.kind === 'number' ? parseNumber(String(r)) : r;
+  }
 
   const evaluation = evaluateRegistration(req, values, params, photos.length);
 
@@ -116,7 +116,7 @@ export default function RegistrationScreen() {
         evaluation,
         photos,
         location: position,
-        recordedBy: data.settings.userName || 'onbekend',
+        recordedBy: signature(data.settings),
         recordedAt: new Date().toISOString(),
         remark: remark.trim(),
       });
@@ -174,7 +174,7 @@ export default function RegistrationScreen() {
       <Card>
         <Field label="Opmerking" value={remark} onChangeText={setRemark} multiline />
         <Muted>
-          Positie: {locating ? 'bepalen…' : formatPosition(position)} · Uitvoerder: {data.settings.userName || 'onbekend'}
+          Positie: {locating ? 'bepalen…' : formatPosition(position)} · Vastgelegd door: {signature(data.settings)}
         </Muted>
         {locating ? <ActivityIndicator color={colors.primary} /> : null}
       </Card>

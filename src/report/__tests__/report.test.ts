@@ -13,8 +13,8 @@ jest.mock('../../services/photos', () => ({
 
 const data: AppData = {
   version: 1,
-  settings: { userName: 'K. de Groot', company: 'Projectbeheerst' },
-  projects: [{ id: 'p1', name: 'OS Noord – RS 12', number: '2026-014', client: 'Netbeheerder', location: 'Zwolle', createdAt: '2026-10-01T08:00:00.000Z', paramOverrides: {} }],
+  settings: { userName: 'K. de Groot', company: 'Projectbeheerst', role: 'werkverantwoordelijke' },
+  projects: [{ id: 'p1', name: 'OS Noord – RS 12', number: '2026-014', client: 'Netbeheerder', location: 'Zwolle', gridOperator: 'Liander', createdAt: '2026-10-01T08:00:00.000Z', paramOverrides: {} }],
   sections: [
     { id: 's1', projectId: 'p1', name: 'Tracédeel 1', from: '0+000', to: '0+050', requiredChecks: ['dekking', 'mantelproef'], createdAt: '2026-10-01T08:00:00.000Z' },
   ],
@@ -32,6 +32,20 @@ const data: AppData = {
       recordedAt: '2026-10-02T09:30:00.000Z',
       remark: '<test>',
     },
+    {
+      id: 'r0',
+      sectionId: 's1',
+      checkId: 'dekking',
+      values: { ligging: 'berm', dekking: 0.6 },
+      params: { minBerm: 0.8 },
+      evaluation: { status: 'voldoet_niet', details: ['✗ Dekking: 0,6 m (eis ≥ 0,8 m)'] },
+      photos: [],
+      location: null,
+      recordedBy: 'K. de Groot',
+      recordedAt: '2026-10-02T08:00:00.000Z',
+      remark: '',
+      withdrawn: { by: 'K. de Groot (Werkverantwoordelijke)', at: '2026-10-02T08:10:00.000Z', reason: 'Meting in verkeerd tracédeel' },
+    },
   ],
 };
 
@@ -40,6 +54,12 @@ describe('bewijsdossier', () => {
     const report = buildReport(data, 'p1');
     expect(report.sections[0].rows.map((r) => r.status)).toEqual(['Voldoet', 'Nog aantonen']);
     expect(report.sections[0].release).toBe('Nog niet vrijgegeven voor aanvullen');
+  });
+
+  it('toont ook ingetrokken registraties met reden in de historie', () => {
+    const history = buildReport(data, 'p1').sections[0].history;
+    expect(history.map((h) => h.state)).toEqual(['Ingetrokken', 'Actueel']);
+    expect(history[0].note).toContain('Meting in verkeerd tracédeel');
   });
 
   it('escapet gebruikersinvoer in de HTML', async () => {

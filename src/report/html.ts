@@ -32,7 +32,22 @@ export async function reportHtml(report: Report): Promise<string> {
       <table>
         <thead><tr><th>Eis</th><th>Status</th><th>Toetsing</th><th>Vastgelegd</th></tr></thead>
         <tbody>${rows.join('')}</tbody>
-      </table>`);
+      </table>
+      ${
+        s.history.length
+          ? `<h3>Historie van alle registraties</h3>
+      <table>
+        <thead><tr><th>Tijdstip</th><th>Eis</th><th>Toetsing</th><th>Status registratie</th><th>Door</th><th>Toelichting</th></tr></thead>
+        <tbody>${s.history
+          .map(
+            (h) =>
+              `<tr><td>${esc(h.recordedAt)}</td><td>${esc(h.check)}</td><td>${esc(h.result)}</td><td>${esc(h.state)}</td><td>${esc(h.recordedBy)}</td><td>${esc(h.note)}</td></tr>`,
+          )
+          .join('')}</tbody>
+      </table>`
+          : ''
+      }
+      ${s.releaseLog.length ? `<h3>Vrijgavehistorie</h3><p>${s.releaseLog.map(esc).join('<br/>')}</p>` : ''}`);
   }
   return `<!doctype html>
 <html lang="nl"><head><meta charset="utf-8"/>
@@ -40,6 +55,7 @@ export async function reportHtml(report: Report): Promise<string> {
   @page { margin: 16mm; }
   body { font-family: -apple-system, Roboto, Helvetica, Arial, sans-serif; font-size: 10pt; color: #1b1f24; }
   h1 { font-size: 16pt; margin: 0 0 4pt; }
+  h3 { font-size: 10.5pt; margin: 10pt 0 4pt; }
   h2 { font-size: 12pt; margin: 16pt 0 4pt; border-bottom: 1px solid #c8ced6; padding-bottom: 2pt; }
   table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
   tr { page-break-inside: avoid; }
@@ -57,6 +73,7 @@ export async function reportHtml(report: Report): Promise<string> {
     <tr><td>Projectnummer</td><td>${esc(p.number)}</td></tr>
     <tr><td>Opdrachtgever</td><td>${esc(p.client)}</td></tr>
     <tr><td>Locatie</td><td>${esc(p.location)}</td></tr>
+    <tr><td>Normset</td><td>${esc(p.gridOperator)} (uitgangspunt, te verifiëren met de specificatie van de netbeheerder)</td></tr>
     <tr><td>Opgesteld</td><td>${esc(report.generatedAt)}${report.generatedBy ? ` door ${esc(report.generatedBy)}` : ''}</td></tr>
   </table>
   ${sections.join('') || '<p>Nog geen tracédelen vastgelegd.</p>'}

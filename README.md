@@ -17,25 +17,34 @@ dat aan de technische eisen is voldaan.
    WhatsApp, Teams, enz.
 
 Een afwijking wordt opgeslagen als "Voldoet niet". Na herstel registreer je de eis opnieuw; de laatste
-registratie per eis telt, de eerdere blijft in de historie staan.
+registratie per eis telt, de eerdere blijft in de historie staan. Registraties worden nooit verwijderd:
+een onjuiste registratie wordt ingetrokken met reden en blijft zichtbaar in het dossier. Alleen de
+werkverantwoordelijke kan een tracédeel vrijgeven voor aanvullen (rol instellen bij Instellingen).
 
 ## Eisen en standaardwaarden
 
-| Eis | Toetsing | Standaard | Vóór aanvullen |
+| Eis | Toetsing | Standaard (normset Liander) | Vóór aanvullen |
 | --- | --- | --- | --- |
 | Gronddekking | dekking ≥ minimum per ligging | berm 0,80 m · rijbaan 1,00 m · landbouw 1,00 m | ja |
 | Zandbed en omhulling | zand onder/boven ≥ minimum, steenvrij | 10 cm / 10 cm | ja |
 | Afdekking en markeringslint | lint aanwezig, hoogte binnen bereik | 20–40 cm boven kabel | ja |
 | Kruising met kabel/leiding | verticale afstand ≥ minimum, of scheidingsplaat/mantelbuis | 0,20 m | ja |
 | Parallelligging | horizontale afstand ≥ minimum | 0,30 m | ja |
-| Buigstraal | R ≥ n × D | 15 × D | ja |
+| Mantelbuis | binnendiameter ≥ factor × kabeldiameter, doorgang, einden waterdicht | 1,5 × | ja |
+| Inmeting ligging (x, y, z) | RD/NAP vastgelegd, nauwkeurigheid ≤ maximum | 5 cm | ja |
+| Aanvulling en verdichting | laagdikte ≤ max, verdichtingsgraad ≥ min, bovenlaag hersteld | 30 cm · 95 % | nee |
+| Buigstraal | R ≥ max(fabrikant, netbeheerder) × D | fabrikantwaarde per registratie; Liander-eis nog leeg | ja |
 | Trekkracht bij intrekken | F ≤ σ × A × n | Al 30 N/mm² · Cu 50 N/mm² | nee |
 | Legtemperatuur | temperatuur ≥ minimum | −5 °C | nee |
-| Mof / eindsluiting montage | checklist + mofnummer, type, monteur, min. 3 foto's | – | ja |
+| Kabel- en haspelgegevens | type, fabrikant, haspel, jaar, lengte, meterstanden | – | ja |
+| Verbindingsmof montage | checklist + mofnummer, type, monteur, min. 3 foto's | – | ja |
+| Eindsluiting montage | checklist + positie, type, monteur, min. 2 foto's | – | nee |
+| Aarding | aardverspreidingsweerstand ≤ maximum, schermen geaard | 3 Ω | nee |
 | Mantelbeproeving | DC-spanning en duur ≥ minimum, geen doorslag | 5 kV · 1 min | ja |
 | Hoogspanningsbeproeving (VLF) | U ≥ factor × U0, duur ≥ minimum, geen doorslag | 3 × 12 kV · 30 min | nee |
 
-De standaardwaarden zijn gangbare uitgangspunten. **Het bestek en de specificatie van de netbeheerder
+De standaardwaarden vormen de normset Liander: gangbare uitgangspunten die nog met de
+Liander-specificatie geverifieerd moeten worden. **Het bestek en de specificatie van de netbeheerder
 zijn altijd leidend**: pas de waarden per project aan via *Project → Normwaarden voor dit project*.
 Elke registratie bewaart de normwaarden waarmee getoetst is, zodat het dossier achteraf klopt.
 
@@ -67,6 +76,7 @@ npm install
 npx expo start          # scan de QR-code met Expo Go of een development build
 npm test                # unit tests van toetsing en rapportage
 npm run typecheck
+npm run lint
 ```
 
 ## Bouwen voor iOS en Android
