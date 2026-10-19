@@ -34,6 +34,9 @@ al als gewone melding met statusmodel te gebruiken.
 
 ## Installatie
 
+De volledige stap-voor-stap-handleiding (accounts, sms-login, pushberichten, publiceren, ingebruikname,
+problemen oplossen) staat in `docs/Installatiehandleiding_ProjectMelder.docx` / `.pdf`. Hieronder de korte versie.
+
 ### 1. Supabase-project
 1. Maak een project op supabase.com in regio **EU (Frankfurt)**.
 2. **Authentication → Providers → Phone**: aanzetten en een sms-dienst koppelen (Twilio, MessageBird, Vonage of Textlocal).
