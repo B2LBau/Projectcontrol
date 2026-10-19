@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "ProjectMelder",
+    "slug": "projectmelder",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "projectmelder",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "nl.projectbeheerst.projectmelder"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B4F9C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "nl.projectbeheerst.projectmelder"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "De camera wordt gebruikt om foto's bij meldingen te maken.",
+          "photosPermission": "Bestaande foto's kunnen bij een melding worden gevoegd."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "De positie wordt alleen op het moment van een foto, spraakopname of melding vastgelegd, zodat aantoonbaar is waar iets gemeld is."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "De microfoon wordt gebruikt om meldingen in te spreken."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "De microfoon wordt gebruikt om meldingen in te spreken.",
+          "speechRecognitionPermission": "Ingesproken meldingen worden omgezet naar tekst.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox", "com.google.android.as"]
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0B4F9C"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

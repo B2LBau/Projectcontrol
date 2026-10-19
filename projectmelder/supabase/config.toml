@@ -1,0 +1,11 @@
+# Supabase CLI-configuratie voor ProjectMelder (zie README.md).
+project_id = "projectmelder"
+
+[functions.suggest]
+verify_jwt = true
+
+[functions.notify]
+verify_jwt = true
+
+[functions.reminders]
+verify_jwt = true
