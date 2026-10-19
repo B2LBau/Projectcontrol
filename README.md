@@ -116,12 +116,10 @@ Zonder koppeling werkt de app alleen lokaal, zoals voorheen. Met koppeling:
    uit. Iedere ingelogde gebruiker ziet alle projecten, dus alleen de beheerder maakt accounts aan.
 3. **Gebruikers aanmaken**: *Authentication → Users → Add user → Create new user*, met e-mail en
    wachtwoord en *Auto Confirm User* aan.
-4. **Sleutels in de app**: kopieer `.env.example` naar `.env.local` en vul de *Project URL* en de
-   *publishable key* (of *anon key*) in uit *Project Settings → API*. Nooit de secret/service_role key.
-5. **Voor EAS-builds** dezelfde twee variabelen in EAS zetten, want `.env.local` gaat niet mee:
-   expo.dev → project → *Environment variables* → *Add variable*, voor alle omgevingen
-   (development, preview, production), zichtbaarheid *Plain text*.
-6. `npx expo start` opnieuw starten (env-variabelen worden bij het starten ingelezen). De app vraagt nu om
+4. **Sleutels in de app**: staan al in [`.env`](.env) (Project URL en publishable key). Die worden ook
+   bij EAS-builds meegenomen. Ander Supabase-project? Pas de twee waarden in `.env` aan. Nooit de
+   secret/service_role key gebruiken.
+5. `npx expo start` opnieuw starten (env-variabelen worden bij het starten ingelezen). De app vraagt nu om
    in te loggen. Bestaande gegevens op het toestel worden bij de eerste synchronisatie geüpload.
 
 De stand van de synchronisatie staat op het startscherm en onder *Instellingen → Account en
