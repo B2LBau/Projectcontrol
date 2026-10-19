@@ -1,4 +1,4 @@
--- Kabelcontrole 20 kV: tabellen, beveiliging (RLS) en fotoopslag.
+-- ProjectMelder: tabellen, beveiliging (RLS) en fotoopslag.
 -- Uitvoeren in Supabase: SQL Editor → New query → dit hele bestand plakken → Run.
 --
 -- Toegangsmodel: iedere ingelogde gebruiker van deze Supabase-omgeving ziet en bewerkt alle projecten.
