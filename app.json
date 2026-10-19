@@ -40,6 +40,12 @@
         }
       ]
     ],
-    "scheme": "kabelcontrole20kv"
+    "scheme": "kabelcontrole20kv",
+    "owner": "b2l-bau",
+    "extra": {
+      "eas": {
+        "projectId": "1c997c2c-44ec-477b-b9b3-63f09a690b51"
+      }
+    }
   }
 }
