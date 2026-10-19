@@ -56,6 +56,8 @@ toevoegen is één object in die lijst.
 - [Expo](https://expo.dev) SDK 58 / React Native, TypeScript, Expo Router (`src/app/`)
 - Werkt volledig offline; gegevens staan lokaal op het toestel (AsyncStorage), foto's in de
   documentenmap van de app
+- Optioneel gekoppeld aan [Supabase](https://supabase.com): inloggen per gebruiker en synchronisatie van
+  projecten, tracédelen, registraties en foto's tussen toestellen (zie hieronder)
 - Camera (`expo-image-picker`), GPS (`expo-location`), PDF (`expo-print`), Word (`docx`),
   delen (`expo-sharing`)
 
@@ -65,8 +67,10 @@ src/
   components/   UI-bouwstenen
   domain/       eisen, toetsing en status (zonder UI, met tests)
   report/       bewijsdossier naar PDF en .docx
-  services/     camera/foto's en GPS
-  storage/      lokale opslag
+  services/     camera/foto's, GPS en Supabase-client
+  storage/      lokale opslag, inloggen en synchronisatie
+supabase/
+  migrations/   databaseschema, beveiliging (RLS) en fotobucket
 ```
 
 ## Ontwikkelen
@@ -91,3 +95,37 @@ npx eas-cli@latest submit --platform all
 ```
 
 Bundle-identifier / package: `nl.projectbeheerst.kabelcontrole20kv` (aan te passen in `app.json`).
+
+## Koppeling met Supabase
+
+Zonder koppeling werkt de app alleen lokaal, zoals voorheen. Met koppeling:
+
+- logt iedere gebruiker in met e-mail en wachtwoord (eenmalig met internet, daarna ook offline);
+- blijft de app **offline-first**: alles wordt eerst op het toestel opgeslagen en verstuurd zodra er
+  verbinding is (na een wijziging, bij openen van de app en elke 2 minuten);
+- zien alle ingelogde gebruikers dezelfde projecten, en worden foto's van collega's opgehaald;
+- dwingt de database de bewijsregels af: een registratie kan niet gewijzigd of verwijderd worden, alleen
+  ingetrokken, en een tracédeel of project met registraties kan niet verwijderd worden.
+
+### Eenmalig instellen
+
+1. **Database aanmaken**: Supabase → *SQL Editor* → *New query* → de inhoud van
+   [`supabase/migrations/20261019000000_kabelcontrole.sql`](supabase/migrations/20261019000000_kabelcontrole.sql)
+   plakken → *Run*. Dit maakt de tabellen, de beveiliging en de privé fotobucket `fotos`.
+2. **Openbare aanmelding uitzetten**: *Authentication → Sign In / Providers* → *Allow new users to sign up*
+   uit. Iedere ingelogde gebruiker ziet alle projecten, dus alleen de beheerder maakt accounts aan.
+3. **Gebruikers aanmaken**: *Authentication → Users → Add user → Create new user*, met e-mail en
+   wachtwoord en *Auto Confirm User* aan.
+4. **Sleutels in de app**: kopieer `.env.example` naar `.env.local` en vul de *Project URL* en de
+   *publishable key* (of *anon key*) in uit *Project Settings → API*. Nooit de secret/service_role key.
+5. **Voor EAS-builds** dezelfde twee variabelen in EAS zetten, want `.env.local` gaat niet mee:
+   expo.dev → project → *Environment variables* → *Add variable*, voor alle omgevingen
+   (development, preview, production), zichtbaarheid *Plain text*.
+6. `npx expo start` opnieuw starten (env-variabelen worden bij het starten ingelezen). De app vraagt nu om
+   in te loggen. Bestaande gegevens op het toestel worden bij de eerste synchronisatie geüpload.
+
+De stand van de synchronisatie staat op het startscherm en onder *Instellingen → Account en
+synchronisatie* (met *Nu synchroniseren* en *Uitloggen*).
+
+Bij gelijktijdige wijziging van hetzelfde project of tracédeel op twee toestellen geldt de laatst
+verstuurde versie. Registraties zelf veranderen nooit, dus bewijs gaat daarbij niet verloren.

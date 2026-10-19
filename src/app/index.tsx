@@ -1,12 +1,13 @@
 import { router, Stack } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 
+import { SyncStatusLine } from '../components/SyncStatus';
 import { Button, Card, colors, H2, Muted, Row, Screen, StatusBadge } from '../components/ui';
 import { sectionState } from '../domain/status';
 import { useStore } from '../storage/store';
 
 export default function Projects() {
-  const { ready, data } = useStore();
+  const { ready, data, syncStatus } = useStore();
 
   return (
     <Screen>
@@ -21,6 +22,7 @@ export default function Projects() {
               <Button title="Naar instellingen" variant="secondary" onPress={() => router.push('/settings')} />
             </Card>
           ) : null}
+          <SyncStatusLine status={syncStatus} />
           <Button title="+ Nieuw project" onPress={() => router.push('/project/new')} />
           {data.projects.length === 0 ? <Muted>Nog geen projecten. Maak een project aan per kabelverbinding.</Muted> : null}
           {data.projects.map((p) => {

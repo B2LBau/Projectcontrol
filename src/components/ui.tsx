@@ -81,14 +81,18 @@ export function Field({
   keyboardType,
   unit,
   multiline,
+  secureTextEntry,
+  autoCapitalize,
 }: {
   label: string;
   value: string;
   onChangeText: (v: string) => void;
   placeholder?: string;
-  keyboardType?: 'default' | 'decimal-pad' | 'numbers-and-punctuation';
+  keyboardType?: 'default' | 'decimal-pad' | 'numbers-and-punctuation' | 'email-address';
   unit?: string;
   multiline?: boolean;
+  secureTextEntry?: boolean;
+  autoCapitalize?: 'none' | 'sentences';
 }) {
   return (
     <View style={styles.field}>
@@ -102,6 +106,9 @@ export function Field({
           placeholderTextColor={colors.muted}
           keyboardType={keyboardType}
           multiline={multiline}
+          secureTextEntry={secureTextEntry}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCapitalize === 'none' ? false : undefined}
         />
         {unit ? <Text style={styles.unit}>{unit}</Text> : null}
       </View>

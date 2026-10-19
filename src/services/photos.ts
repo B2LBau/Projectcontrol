@@ -22,6 +22,23 @@ export async function takePhoto(): Promise<string | null> {
   return target.uri;
 }
 
+/** Plek op dit toestel voor een foto met deze bestandsnaam. */
+export function localPhotoUri(name: string): string {
+  return new File(photoDir(), name).uri;
+}
+
+export function photoExists(uri: string): boolean {
+  try {
+    return new File(uri).exists;
+  } catch {
+    return false;
+  }
+}
+
+export async function downloadPhoto(url: string, uri: string): Promise<void> {
+  await File.downloadFileAsync(url, new File(uri), { idempotent: true });
+}
+
 export function deletePhotos(uris: string[]) {
   for (const uri of uris) {
     try {
