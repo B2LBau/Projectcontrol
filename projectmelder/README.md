@@ -20,7 +20,7 @@ in één bewaakte lijst met termijnen, herinneringen en escalatie. Gebouwd volge
 | Melden met spraak (ingedrukt houden of tikken), AI-voorstel, meerdere meldingen uit één opname, altijd bevestigen | §5.4 | `src/app/(tabs)/melden.tsx`, `item/new.tsx`, `supabase/functions/suggest` |
 | Overlegmodus: acties/besluiten inspreken, aanwezigheid, open acties uit eerdere overleggen, verslag PDF/Word | §5.6 | `src/app/meeting/` |
 | 8 meldingstypen met statusmodel, rechten per rol, verificatie door een ander dan de hersteller | §4, §6 | `src/domain/status.ts`, `item_set_status()` |
-| Centrale lijst met snelfilters (actielijst, besluitenlijst, afwijkingen, te laat), zoeken in ingesproken tekst, live bijwerken, export PDF/Word/CSV | §5.12 | `src/app/(tabs)/lijst.tsx`, `src/report/` |
+| Centrale lijst per project of over **alle projecten**, sorteerbare **tabel** (desktop) of kaarten (mobiel), kerncijfers (open, te laat, vandaag, urgent), snelfilters, zoeken in ingesproken tekst, live bijwerken, export PDF/Word/CSV | §5.12 | `src/app/(tabs)/lijst.tsx`, `src/components/ItemTable.tsx`, `src/domain/overview.ts`, `src/report/` |
 | Mijn taken per termijn (te laat, vandaag, deze week) | §3.2 | `src/app/(tabs)/taken.tsx` |
 | Termijnen in werkdagen (incl. feestdagen), herinneringen 2 werkdagen vóór / op de dag / 1 dag na, escalatie, dagelijkse samenvatting, stille uren | §5.13 | `src/domain/deadlines.ts`, `supabase/functions/reminders` |
 | Push bij toewijzing, kritieke afwijking, gereedmelding, statuswijziging en chat | §5.14 | `supabase/functions/notify`, `src/lib/notifications.ts` |
@@ -28,7 +28,7 @@ in één bewaakte lijst met termijnen, herinneringen en escalatie. Gebouwd volge
 | Audit trail: wijzigingen alleen via databasefuncties, elke wijziging in `item_events` | NFE-06 | `supabase/migrations/` |
 
 Nog niet gebouwd (fase 2/3 in het FO): controlerondes met checklistsjablonen, verkeersmaatregelenregister met
-controle-interval, foto-annotatie, kaartweergave, kanban, dashboard, Microsoft 365-koppelingen, vertaling,
+controle-interval, foto-annotatie, kaartweergave, kanban, dashboard met grafieken, Microsoft 365-koppelingen, vertaling,
 controle van de toesteltijd tegen de servertijd. De meldingstypen *controleronde* en *verkeersmaatregel* zijn wel
 al als gewone melding met statusmodel te gebruiken.
 

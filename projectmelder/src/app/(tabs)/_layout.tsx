@@ -49,7 +49,7 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="lijst" options={{ title: project ? `${project.code} · Lijst` : 'Lijst', tabBarLabel: 'Lijst', tabBarIcon: icon('☰') }} />
+      <Tabs.Screen name="lijst" options={{ title: 'Meldingen', tabBarLabel: 'Lijst', tabBarIcon: icon('☰') }} />
       <Tabs.Screen name="meer" options={{ title: 'Meer', tabBarIcon: icon('⋯') }} />
     </Tabs>
   );

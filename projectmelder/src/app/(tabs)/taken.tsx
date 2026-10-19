@@ -6,14 +6,15 @@ import { RefreshControl, ScrollView } from 'react-native';
 import { ItemCard } from '../../components/ItemCard';
 import { colors, Empty, H2, Muted } from '../../components/ui';
 import { Bucket, BUCKET_LABELS, bucketFor } from '../../domain/deadlines';
-import type { Item } from '../../domain/types';
-import { getMyTasks } from '../../lib/api';
+import type { Item, Member } from '../../domain/types';
+import { getMembersFor, getMyTasks } from '../../lib/api';
 import { useSession } from '../../lib/session';
 
 const ORDER: Bucket[] = ['te_laat', 'vandaag', 'deze_week', 'later', 'geen'];
 
 export default function Taken() {
-  const { session, members, projects } = useSession();
+  const { session, projects } = useSession();
+  const [members, setMembers] = useState<Member[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,10 +23,11 @@ export default function Taken() {
     setLoading(true);
     try {
       setItems(await getMyTasks(session.user.id));
+      setMembers(await getMembersFor(projects.map((p) => p.id)));
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, projects]);
 
   useFocusEffect(
     useCallback(() => {

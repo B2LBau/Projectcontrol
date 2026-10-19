@@ -9,12 +9,13 @@ import { DuePicker, MemberPicker } from '../../components/Pickers';
 import { Badge, Banner, Button, Card, colors, Field, H2, Label, Loading, Muted, Row, Screen } from '../../components/ui';
 import { deadlineColor } from '../../domain/deadlines';
 import { allowedTransitions, isClosed, statusLabel, Transition } from '../../domain/status';
-import { Attachment, Item, ITEM_TYPE_INFO, ItemEvent, SEVERITY_LABELS } from '../../domain/types';
+import { Attachment, Item, ITEM_TYPE_INFO, ItemEvent, Member, SEVERITY_LABELS } from '../../domain/types';
 import {
   addComment,
   getAttachments,
   getItem,
   getItemEvents,
+  getMembers,
   setDue,
   setOwner,
   setStatus,
@@ -52,7 +53,9 @@ function eventText(e: ItemEvent, item: Item, name: (id: string | null) => string
 
 export default function ItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { session, members, me } = useSession();
+  const { session, members: projectMembers } = useSession();
+  // Leden van het project van déze melding (kan een ander project zijn dan het gekozen project)
+  const [itemMembers, setItemMembers] = useState<Member[] | null>(null);
   const [item, setItem] = useState<Item | null>(null);
   const [events, setEvents] = useState<ItemEvent[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -74,6 +77,7 @@ export default function ItemScreen() {
     ]);
     setEvents(ev);
     setAttachments([...att, ...srcAtt]);
+    setItemMembers(await getMembers(it.project_id));
   }, [id]);
 
   useEffect(() => {
@@ -98,6 +102,8 @@ export default function ItemScreen() {
 
   const info = ITEM_TYPE_INFO[item.type];
   const closed = isClosed(item.type, item.status);
+  const members = itemMembers ?? projectMembers;
+  const me = members.find((m) => m.user_id === session?.user.id) ?? null;
   const name = (uid: string | null) => memberName(members, uid);
   const transitions =
     me && session && !closed

@@ -179,7 +179,9 @@ export async function retractMessage(id: string) {
 // ---------------------------------------------------------------- meldingen
 
 export type ItemFilter = {
-  projectId: string;
+  /** Eén project; zonder projectId/projectIds alle projecten waar de gebruiker toegang toe heeft (RLS). */
+  projectId?: string;
+  projectIds?: string[];
   types?: ItemType[];
   open?: boolean;
   ownerId?: string;
@@ -190,7 +192,9 @@ export type ItemFilter = {
 };
 
 export async function getItems(f: ItemFilter): Promise<Item[]> {
-  let q = supabase.from('items').select('*').eq('project_id', f.projectId);
+  let q = supabase.from('items').select('*');
+  if (f.projectId) q = q.eq('project_id', f.projectId);
+  else if (f.projectIds?.length) q = q.in('project_id', f.projectIds);
   if (f.types?.length) q = q.in('type', f.types);
   if (f.open === true) q = q.is('closed_at', null);
   if (f.open === false) q = q.not('closed_at', 'is', null);
@@ -202,7 +206,13 @@ export async function getItems(f: ItemFilter): Promise<Item[]> {
     const s = f.search.trim().replace(/[%,()]/g, ' ');
     q = q.or(`title.ilike.%${s}%,description.ilike.%${s}%,transcript.ilike.%${s}%,number.ilike.%${s}%,location_label.ilike.%${s}%`);
   }
-  return check(await q.order('created_at', { ascending: false }).limit(500)) ?? [];
+  return check(await q.order('created_at', { ascending: false }).limit(f.projectId ? 500 : 2000)) ?? [];
+}
+
+/** Leden van meerdere projecten (voor namen in het overzicht over alle projecten). */
+export async function getMembersFor(projectIds: string[]): Promise<Member[]> {
+  if (projectIds.length === 0) return [];
+  return check(await supabase.from('member_directory').select('*').in('project_id', projectIds).eq('active', true)) ?? [];
 }
 
 /** Alles wat aan mij is toegewezen of op mijn beoordeling wacht, over alle projecten. */
