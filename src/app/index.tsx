@@ -11,7 +11,7 @@ export default function Projects() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: 'ProjectMelder' }} />
+      <Stack.Screen options={{ title: 'Kabelcontrole 20 kV' }} />
       {!ready ? (
         <ActivityIndicator size="large" color={colors.primary} />
       ) : (

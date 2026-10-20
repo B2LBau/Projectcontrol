@@ -145,7 +145,7 @@ export async function reportDocx(report: Report): Promise<Uint8Array> {
   }
 
   const doc = new Document({
-    creator: report.generatedBy || 'ProjectMelder',
+    creator: report.generatedBy || 'Kabelcontrole 20 kV',
     title: report.title,
     styles: { default: { document: { run: { font: 'Calibri', size: 20 } } } },
     sections: [{ children }],
