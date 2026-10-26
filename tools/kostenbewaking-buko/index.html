@@ -1,0 +1,1217 @@
+<title>Kostenbewaking BUKO</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&family=Overpass+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: werkplaatsbord — rood-witte afzetbalk bovenaan, samenvatting eerst, details in tabbladen. */
+:root {
+  --bg: #f3f5f7;
+  --panel: #ffffff;
+  --ink: #16222f;
+  --muted: #586676;
+  --line: #d6dde4;
+  --accent: #f5b800;
+  --accent-ink: #1b1b1b;
+  --ok: #2b7a4b;
+  --warn: #a86400;
+  --bad: #c8102e;
+  --ok-bg: #e5f3ea;
+  --warn-bg: #fdf1dc;
+  --bad-bg: #fbe5e8;
+  --s-fact: #1f5f99;
+  --s-opdr: #79a8d6;
+  --s-ram: #c3ceda;
+  --s-free: #e8edf2;
+  --stripe-a: #c8102e;
+  --stripe-b: #ffffff;
+  --font-display: "Overpass", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Overpass", "Segoe UI", system-ui, sans-serif;
+  --font-num: "Overpass Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141b; --panel: #161f29; --ink: #e6ecf2; --muted: #98a6b5; --line: #2a3644;
+    --accent: #f7c531; --accent-ink: #141414; --ok: #5cc28a; --warn: #e6a640; --bad: #ff6272;
+    --ok-bg: #16301f; --warn-bg: #33270f; --bad-bg: #3a1720;
+    --s-fact: #5ea6ea; --s-opdr: #2f5f8f; --s-ram: #3b4958; --s-free: #1e2935;
+    --stripe-a: #d4233f; --stripe-b: #e9e9e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141b; --panel: #161f29; --ink: #e6ecf2; --muted: #98a6b5; --line: #2a3644;
+  --accent: #f7c531; --accent-ink: #141414; --ok: #5cc28a; --warn: #e6a640; --bad: #ff6272;
+  --ok-bg: #16301f; --warn-bg: #33270f; --bad-bg: #3a1720;
+  --s-fact: #5ea6ea; --s-opdr: #2f5f8f; --s-ram: #3b4958; --s-free: #1e2935;
+  --stripe-a: #d4233f; --stripe-b: #e9e9e9;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.kb { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; max-width: 1240px; margin: 0 auto; display: grid; gap: 20px; }
+.kb-stripe { height: 10px; background: repeating-linear-gradient(-45deg, var(--stripe-a) 0 14px, var(--stripe-b) 14px 28px); border-bottom: 1px solid var(--line); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 700; }
+.eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+small, .small { font-size: 0.82rem; }
+
+.kb-head { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; padding-top: 20px; }
+.kb-head > div { min-width: 0; }
+.kb-head .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button, .btn { font: inherit; font-weight: 600; font-size: 0.9rem; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 7px 14px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.primary:hover { filter: brightness(0.95); }
+button.danger { color: var(--bad); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:focus-visible, select:focus-visible, input:focus-visible, .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select, input[type="text"], input[type="number"] { font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; max-width: 100%; }
+
+.banner { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 8px; background: var(--warn-bg); border: 1px solid var(--warn); }
+.banner p { margin: 0; min-width: 0; flex: 1 1 280px; }
+.banner.info { background: var(--panel); border-color: var(--line); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--line); overflow-x: auto; }
+.tab { font: inherit; font-weight: 700; font-size: 0.92rem; background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 8px 12px; color: var(--muted); border-radius: 0; white-space: nowrap; cursor: pointer; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .count { font-family: var(--font-num); font-weight: 400; font-size: 0.8rem; margin-left: 4px; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
+.panel > header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.stack { display: grid; gap: 20px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 2px; align-content: start; min-width: 0; }
+.kpi .val { font-family: var(--font-num); font-size: 1.45rem; font-weight: 600; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .sub { font-size: 0.82rem; color: var(--muted); }
+.kpi.state-ok { border-left: 4px solid var(--ok); }
+.kpi.state-warn { border-left: 4px solid var(--warn); }
+.kpi.state-bad { border-left: 4px solid var(--bad); }
+
+.pill { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; letter-spacing: 0.02em; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.pill.neutral { background: var(--s-free); color: var(--muted); }
+
+.bbar { position: relative; height: 34px; border-radius: 4px; background: var(--s-free); display: flex; overflow: visible; margin-top: 28px; }
+.bbar .seg { height: 100%; min-width: 0; }
+.bbar .seg:first-child { border-radius: 4px 0 0 4px; }
+.bbar .over { background: repeating-linear-gradient(-45deg, var(--bad) 0 6px, var(--bad-bg) 6px 12px); }
+.bbar .mark { position: absolute; top: -26px; bottom: -4px; border-left: 2px solid var(--ink); }
+.bbar .mark span { position: absolute; top: 0; left: 4px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.bbar .mark.right span { left: auto; right: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 0.85rem; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 700; white-space: nowrap; }
+td.r, th.r { text-align: right; }
+td.r { font-family: var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: none; }
+tr.dim td { color: var(--muted); }
+td .neg { color: var(--bad); }
+.minibar { position: relative; width: 140px; height: 12px; background: var(--s-free); border-radius: 2px; }
+.minibar .p { position: absolute; left: 0; top: 0; bottom: 0; background: var(--s-opdr); border-radius: 2px; }
+.minibar .f { position: absolute; left: 0; top: 0; bottom: 0; background: var(--s-fact); border-radius: 2px; }
+.minibar .p.over { background: var(--bad); }
+.minibar .b { position: absolute; top: -3px; bottom: -3px; border-left: 2px solid var(--ink); }
+
+.signals { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.signals li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 6px; background: var(--bg); }
+.signals li > div { min-width: 0; }
+.signals .empty { display: block; color: var(--muted); }
+
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { fill: var(--muted); font-family: var(--font-body); font-size: 11px; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 0.82rem; box-shadow: 0 4px 14px rgba(0,0,0,0.12); white-space: nowrap; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toolbar input[type="text"] { flex: 1 1 200px; }
+
+.drop { border: 2px dashed var(--line); border-radius: 8px; padding: 28px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; background: var(--panel); cursor: pointer; }
+.drop.over { border-color: var(--accent); background: var(--warn-bg); }
+.drop p { margin: 0; }
+.mapcard { display: grid; gap: 14px; }
+.mapgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 14px; }
+.mapgrid label { display: grid; gap: 3px; font-size: 0.82rem; font-weight: 600; min-width: 0; }
+.mapgrid label .req { color: var(--bad); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; font-size: 0.88rem; }
+.opts label { display: inline-flex; gap: 6px; align-items: center; }
+.statusgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.statuscard { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.statuscard .file { overflow-wrap: anywhere; }
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.settings label { display: grid; gap: 3px; font-size: 0.82rem; font-weight: 600; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; z-index: 20; max-width: calc(100% - 32px); }
+.note { font-size: 0.82rem; color: var(--muted); margin: 8px 0 0; }
+.empty-state { padding: 32px 16px; text-align: center; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .tab, button { transition: border-color .15s, background .15s; } }
+</style>
+
+<div class="kb-stripe" aria-hidden="true"></div>
+<div class="kb">
+  <div class="kb-head">
+    <div>
+      <div class="eyebrow">Kostenbewaking verkeersmaatregelen · BUKO</div>
+      <h1 id="projTitle">Verkeersmaatregelen BUKO</h1>
+      <div class="small muted" id="standLine">Stand —</div>
+    </div>
+    <div class="actions">
+      <button id="btnExport" type="button" hidden>Exporteer naar Excel</button>
+      <button id="btnGoImport" type="button" class="primary">Bestanden importeren</button>
+    </div>
+  </div>
+
+  <div id="exampleBanner" class="banner" hidden>
+    <p><strong>Je ziet voorbeeldgegevens.</strong> Importeer je eigen offerte- en facturenoverzicht, kostenraming en budget; elk bestand vervangt het voorbeeld van dat onderdeel.</p>
+    <button id="btnClearExample" type="button">Voorbeeld wissen</button>
+  </div>
+  <div id="noDbBanner" class="banner info" hidden>
+    <p>Opslaan is in deze weergave niet beschikbaar. Je kunt bestanden importeren en bekijken, maar ze blijven niet bewaard na sluiten.</p>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Onderdelen">
+    <button class="tab" role="tab" id="tab-overzicht" data-tab="overzicht" aria-selected="true">Overzicht</button>
+    <button class="tab" role="tab" id="tab-offertes" data-tab="offertes" aria-selected="false">Offertes<span class="count" id="cnt-offertes"></span></button>
+    <button class="tab" role="tab" id="tab-facturen" data-tab="facturen" aria-selected="false">Facturen<span class="count" id="cnt-facturen"></span></button>
+    <button class="tab" role="tab" id="tab-raming" data-tab="raming" aria-selected="false">Raming &amp; budget</button>
+    <button class="tab" role="tab" id="tab-import" data-tab="import" aria-selected="false">Importeren</button>
+  </nav>
+
+  <!-- OVERZICHT -->
+  <section id="view-overzicht" class="stack">
+    <div class="kpis" id="kpis"></div>
+
+    <div class="panel">
+      <header>
+        <h2>Budget tegen prognose eindkosten</h2>
+        <span class="small muted" id="bbarNote"></span>
+      </header>
+      <div class="bbar" id="bbar"></div>
+      <div class="legend" id="bbarLegend"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <header>
+          <h2>Per kostenpost</h2>
+          <span class="small muted">Prognose = hoogste van raming, opdracht en gefactureerd</span>
+        </header>
+        <div class="tablewrap"><table id="postTable"></table></div>
+      </div>
+      <div class="panel">
+        <header><h2>Aandachtspunten</h2><span class="small muted" id="sigCount"></span></header>
+        <ul class="signals" id="signals"></ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <header>
+        <h2>Kostenverloop</h2>
+        <span class="small muted">Cumulatief, op offerte- en factuurdatum</span>
+      </header>
+      <div class="chart" id="chart"></div>
+      <div class="legend" id="chartLegend"></div>
+      <p class="note" id="chartNote"></p>
+    </div>
+  </section>
+
+  <!-- OFFERTES -->
+  <section id="view-offertes" class="panel" hidden>
+    <header>
+      <h2>Offertes</h2>
+      <div class="toolbar">
+        <input type="text" id="qOff" placeholder="Zoek op nummer, omschrijving of post" aria-label="Zoek offertes">
+        <select id="fOff" aria-label="Filter status">
+          <option value="">Alle statussen</option>
+          <option value="opdracht">Opdracht</option>
+          <option value="behandeling">In behandeling</option>
+          <option value="vervallen">Vervallen</option>
+        </select>
+      </div>
+    </header>
+    <div class="tablewrap"><table id="offTable"></table></div>
+    <p class="note">Kies bij een regel zonder kostenpost een post; dat wordt bewaard voor iedereen, ook na een nieuwe import (gekoppeld aan het offertenummer).</p>
+  </section>
+
+  <!-- FACTUREN -->
+  <section id="view-facturen" class="panel" hidden>
+    <header>
+      <h2>Facturen</h2>
+      <div class="toolbar">
+        <input type="text" id="qFac" placeholder="Zoek op nummer, offerte, omschrijving of post" aria-label="Zoek facturen">
+        <select id="fFac" aria-label="Filter">
+          <option value="">Alle facturen</option>
+          <option value="open">Openstaand</option>
+          <option value="betaald">Betaald</option>
+          <option value="zonderofferte">Zonder gekoppelde offerte</option>
+        </select>
+      </div>
+    </header>
+    <div class="tablewrap"><table id="facTable"></table></div>
+    <p class="note">Een factuur zonder eigen kostenpost krijgt de post van de offerte waar hij naar verwijst.</p>
+  </section>
+
+  <!-- RAMING & BUDGET -->
+  <section id="view-raming" class="stack" hidden>
+    <div class="panel">
+      <header><h2>Kostenbudget</h2><span class="small muted" id="budgetSrc"></span></header>
+      <div class="tablewrap"><table id="budTable"></table></div>
+    </div>
+    <div class="panel">
+      <header><h2>Kostenraming</h2><span class="small muted" id="ramSrc"></span></header>
+      <div class="tablewrap"><table id="ramTable"></table></div>
+    </div>
+  </section>
+
+  <!-- IMPORTEREN -->
+  <section id="view-import" class="stack" hidden>
+    <div class="panel">
+      <header><h2>Huidige gegevens</h2></header>
+      <div class="statusgrid" id="statusGrid"></div>
+    </div>
+
+    <label class="drop" id="drop" for="fileInput">
+      <h3>Sleep Excel-bestanden hierheen</h3>
+      <p class="muted small">Offerteoverzicht, facturenoverzicht, kostenraming of budget (.xlsx, .xls, .csv). Je kunt ze ook tegelijk kiezen.</p>
+      <span class="btn">Bestanden kiezen</span>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.xlsm,.csv" multiple hidden>
+    </label>
+
+    <div id="mapCards" class="stack"></div>
+
+    <div class="panel">
+      <header><h2>Projectinstellingen</h2></header>
+      <div class="settings">
+        <label for="setProject">Projectnaam
+          <input type="text" id="setProject" placeholder="Bijv. Herinrichting Dorpsstraat">
+        </label>
+        <label for="setBudget">Totaalbudget (als er geen budget per post is)
+          <input type="number" id="setBudget" step="100" min="0" placeholder="€">
+        </label>
+        <label for="setDrempel">Signaal vanaf % van budget
+          <input type="number" id="setDrempel" step="1" min="50" max="100" placeholder="90">
+        </label>
+      </div>
+      <div class="toolbar" style="margin-top:12px"><button type="button" id="btnSaveSettings">Instellingen opslaan</button></div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ---------- definities ----------
+  const SETS = {
+    offertes: {
+      label: "Offerteoverzicht",
+      fields: [
+        { key: "nummer", label: "Offertenummer", syn: ["offertenummer", "offertenr", "offerte nr", "nummer", "nr", "referentie", "kenmerk", "offerte"] },
+        { key: "datum", label: "Datum", syn: ["offertedatum", "datum", "date", "datum offerte"] },
+        { key: "leverancier", label: "Leverancier", syn: ["leverancier", "aannemer", "bedrijf", "crediteur", "relatie"] },
+        { key: "omschrijving", label: "Omschrijving", syn: ["omschrijving", "onderwerp", "betreft", "werkzaamheden", "locatie", "beschrijving", "project"] },
+        { key: "post", label: "Kostenpost", syn: ["kostenpost", "post", "budgetpost", "onderdeel", "categorie", "kostensoort", "fase"] },
+        { key: "bedrag", label: "Bedrag excl. btw", req: true, syn: ["bedrag excl btw", "excl btw", "excl", "offertebedrag", "bedrag", "totaal", "prijs", "waarde", "netto"] },
+        { key: "status", label: "Status", syn: ["status", "akkoord", "opdracht", "goedgekeurd", "gegund", "akkoord ja nee"] }
+      ]
+    },
+    facturen: {
+      label: "Facturenoverzicht",
+      fields: [
+        { key: "nummer", label: "Factuurnummer", syn: ["factuurnummer", "factuurnr", "factuur nr", "factuur", "nummer", "nr"] },
+        { key: "datum", label: "Factuurdatum", syn: ["factuurdatum", "datum", "date", "boekdatum"] },
+        { key: "offerte", label: "Offertenummer", syn: ["offertenummer", "offertenr", "offerte nr", "offerte", "uw referentie", "referentie", "kenmerk", "opdrachtnummer", "bestelnummer", "inkoopordernummer"] },
+        { key: "leverancier", label: "Leverancier", syn: ["leverancier", "crediteur", "bedrijf", "relatie"] },
+        { key: "omschrijving", label: "Omschrijving", syn: ["omschrijving", "betreft", "onderwerp", "werkzaamheden", "beschrijving", "periode"] },
+        { key: "post", label: "Kostenpost", syn: ["kostenpost", "post", "budgetpost", "onderdeel", "categorie", "kostensoort"] },
+        { key: "bedrag", label: "Bedrag excl. btw", req: true, syn: ["bedrag excl btw", "excl btw", "excl", "factuurbedrag", "bedrag", "netto", "totaal"] },
+        { key: "status", label: "Betaalstatus", syn: ["status", "betaald", "betaalstatus", "voldaan"] }
+      ]
+    },
+    raming: {
+      label: "Kostenraming",
+      fields: [
+        { key: "code", label: "Code", syn: ["code", "codering", "nr", "regelnr", "artikelnr", "stabu", "postnr"] },
+        { key: "post", label: "Kostenpost", syn: ["kostenpost", "post", "hoofdstuk", "onderdeel", "categorie", "groep", "budgetpost"] },
+        { key: "omschrijving", label: "Omschrijving", syn: ["omschrijving", "werkzaamheden", "beschrijving", "artikel", "item", "maatregel"] },
+        { key: "hoeveelheid", label: "Hoeveelheid", syn: ["hoeveelheid", "aantal", "hvh", "qty", "aant"] },
+        { key: "eenheid", label: "Eenheid", syn: ["eenheid", "eh", "eenh"] },
+        { key: "prijs", label: "Eenheidsprijs", syn: ["eenheidsprijs", "prijs per eenheid", "prijs", "tarief"] },
+        { key: "bedrag", label: "Bedrag", syn: ["totaal", "bedrag", "totaalprijs", "kosten", "raming", "totaal excl btw"] }
+      ]
+    },
+    budget: {
+      label: "Kostenbudget",
+      fields: [
+        { key: "post", label: "Kostenpost", req: true, syn: ["kostenpost", "post", "budgetpost", "onderdeel", "omschrijving", "categorie", "code"] },
+        { key: "bedrag", label: "Budget", req: true, syn: ["budget", "budgetbedrag", "bedrag", "totaal", "waarde"] }
+      ]
+    }
+  };
+  const SET_ORDER = ["offertes", "facturen", "raming", "budget"];
+  const CHUNK = 400;
+  const NO_POST = "";
+
+  // ---------- state ----------
+  const state = {
+    imports: {},          // set -> meta
+    chunks: {},           // set -> {n: rows}
+    assign: { offertes: {}, facturen: {} },
+    settings: { project: "", totaalBudget: null, drempel: 90 },
+    local: null,          // in-memory fallback when no db
+    tab: "overzicht"
+  };
+  let db = null, userCap = null, downloads = null, canWrite = true;
+  const writeQueue = {};
+
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k === "style") el.style.cssText = v;
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const kid of kids.flat()) {
+      if (kid == null || kid === false) continue;
+      el.appendChild(typeof kid === "string" || typeof kid === "number" ? document.createTextNode(String(kid)) : kid);
+    }
+    return el;
+  }
+  const eur0 = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  const eur2 = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct0 = new Intl.NumberFormat("nl-NL", { style: "percent", maximumFractionDigits: 0 });
+  const fmt0 = (v) => v == null || isNaN(v) ? "—" : eur0.format(v);
+  const fmt2 = (v) => v == null || isNaN(v) ? "—" : eur2.format(v);
+  const fmtDate = (iso) => { if (!iso) return "—"; const [y, m, d] = iso.split("-"); return d + "-" + m + "-" + y; };
+  const normHeader = (s) => String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normKey = (s) => String(s == null ? "" : s).toLowerCase().replace(/\s+/g, " ").trim();
+  const normRef = (s) => String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]/g, "");
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+
+  function parseNum(v) {
+    if (v == null || v === "") return null;
+    if (typeof v === "number") return isFinite(v) ? v : null;
+    let s = String(v).trim();
+    if (!s) return null;
+    let neg = false;
+    if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+    s = s.replace(/[€\s ]|eur/gi, "");
+    if (s.startsWith("-")) { neg = !neg; s = s.slice(1); }
+    if (s.endsWith(",-")) s = s.slice(0, -2);
+    else if (s.endsWith("-")) s = s.slice(0, -1);
+    const lastC = s.lastIndexOf(","), lastD = s.lastIndexOf(".");
+    if (lastC >= 0 && lastD >= 0) {
+      if (lastC > lastD) s = s.replace(/\./g, "").replace(",", ".");
+      else s = s.replace(/,/g, "");
+    } else if (lastC >= 0) {
+      s = /^\d{1,3}(,\d{3})+$/.test(s) && s.split(",").pop().length === 3 && s.indexOf(",") !== lastC ? s.replace(/,/g, "") : s.replace(",", ".");
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+      s = s.replace(/\./g, "");
+    }
+    if (!/^\d*\.?\d+$/.test(s)) return null;
+    const n = parseFloat(s);
+    return isFinite(n) ? (neg ? -n : n) : null;
+  }
+  function parseDate(v) {
+    if (v == null || v === "") return null;
+    if (v instanceof Date && !isNaN(v)) {
+      const d = new Date(v.getTime() + 12 * 3600e3); // tegen tijdzone-afronding
+      return d.toISOString().slice(0, 10);
+    }
+    if (typeof v === "number" && v > 20000 && v < 80000) {
+      const d = new Date(Math.round((v - 25569) * 86400e3) + 12 * 3600e3);
+      return d.toISOString().slice(0, 10);
+    }
+    const s = String(v).trim();
+    let m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+    if (m) {
+      let y = +m[3]; if (y < 100) y += 2000;
+      return y + "-" + String(m[2]).padStart(2, "0") + "-" + String(m[1]).padStart(2, "0");
+    }
+    m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[1] + "-" + m[2] + "-" + m[3];
+    return null;
+  }
+  const text = (v) => {
+    if (v == null) return "";
+    if (v instanceof Date) return parseDate(v) || "";
+    return String(v).trim();
+  };
+
+  function offerteStatus(raw, dflt) {
+    const s = normHeader(raw);
+    if (!s) return dflt || "opdracht";
+    if (/niet akkoord|afgew|vervall|geannul|afgekeurd|verlopen|niet gegund|^nee$|^n$|verloren|ingetrokken/.test(s)) return "vervallen";
+    if (/akkoord|opdracht|gegund|geaccept|goedgek|^ja$|^j$|getekend|besteld|^ok$|verstrekt|definitief/.test(s)) return "opdracht";
+    return "behandeling";
+  }
+  function factuurBetaald(raw) {
+    const s = normHeader(raw);
+    if (!s) return false;
+    if (/onbetaald|niet|open|^nee$/.test(s)) return false;
+    return /betaald|voldaan|^ja$|^j$|paid/.test(s);
+  }
+  const OFF_LABEL = { opdracht: "Opdracht", behandeling: "In behandeling", vervallen: "Vervallen" };
+  const OFF_PILL = { opdracht: "ok", behandeling: "warn", vervallen: "neutral" };
+
+  // ---------- data assembly ----------
+  function rowsOf(set) {
+    if (state.local) return state.local[set] ? state.local[set].rows : [];
+    const meta = state.imports[set];
+    if (!meta) return [];
+    const ch = state.chunks[set] || {};
+    const out = [];
+    for (let i = 0; i < (meta.chunks || 0); i++) if (ch[i]) out.push(...ch[i]);
+    return out;
+  }
+  function metaOf(set) { return state.local ? (state.local[set] && state.local[set].meta) : state.imports[set]; }
+  const rowKey = (set, r, i) => r.nummer ? "n:" + normRef(r.nummer) : "i:" + normRef((r.datum || "") + (r.omschrijving || "") + (r.bedrag || "")) + ":" + i;
+
+  function compute() {
+    const posts = new Map(); // key -> agg
+    const label = (k, l) => { if (!posts.has(k)) posts.set(k, { key: k, label: k === NO_POST ? "Zonder kostenpost" : l, B: 0, R: 0, O: 0, P: 0, F: 0, hasB: false }); return posts.get(k); };
+
+    const budget = rowsOf("budget"), raming = rowsOf("raming");
+    budget.forEach((r) => { const p = label(normKey(r.post), r.post); p.B += r.bedrag || 0; p.hasB = true; });
+    raming.forEach((r) => { const k = normKey(r.post || r.omschrijving); label(k, r.post || r.omschrijving).R += r.bedrag || 0; });
+
+    const offMeta = metaOf("offertes") || {};
+    const offertes = rowsOf("offertes").map((r, i) => {
+      const key = rowKey("offertes", r, i);
+      const own = r.post ? normKey(r.post) : null;
+      const assigned = state.assign.offertes[key];
+      const postKey = own != null ? own : (assigned != null ? normKey(assigned) : NO_POST);
+      const postLabel = own != null ? r.post : (assigned || "");
+      return Object.assign({}, r, { key, postKey, postLabel, own: own != null, st: offerteStatus(r.status, offMeta.zonderStatus) });
+    });
+    const offByRef = new Map();
+    offertes.forEach((o) => { if (o.nummer) offByRef.set(normRef(o.nummer), o); });
+
+    const facturen = rowsOf("facturen").map((r, i) => {
+      const key = rowKey("facturen", r, i);
+      const off = r.offerte ? offByRef.get(normRef(r.offerte)) : null;
+      const own = r.post ? normKey(r.post) : null;
+      const assigned = state.assign.facturen[key];
+      let postKey = NO_POST, postLabel = "", via = null;
+      if (own != null) { postKey = own; postLabel = r.post; }
+      else if (assigned != null) { postKey = normKey(assigned); postLabel = assigned; }
+      else if (off && off.postKey !== NO_POST) { postKey = off.postKey; postLabel = off.postLabel; via = "offerte"; }
+      return Object.assign({}, r, { key, off, postKey, postLabel, via, own: own != null, betaald: factuurBetaald(r.status) });
+    });
+
+    offertes.forEach((o) => {
+      const p = label(o.postKey, o.postLabel);
+      if (o.st === "opdracht") p.O += o.bedrag || 0;
+      else if (o.st === "behandeling") p.P += o.bedrag || 0;
+    });
+    facturen.forEach((f) => { label(f.postKey, f.postLabel).F += f.bedrag || 0; });
+
+    // gefactureerd per offerte
+    offertes.forEach((o) => { o.gefact = 0; o.nFact = 0; });
+    facturen.forEach((f) => { if (f.off) { f.off.gefact += f.bedrag || 0; f.off.nFact++; } });
+
+    const hasBudgetPerPost = budget.length > 0;
+    const list = [...posts.values()].map((p) => {
+      p.E = Math.max(p.R, p.O, p.F);
+      p.ruimte = p.hasB ? p.B - p.E : null;
+      p.ratio = p.hasB && p.B > 0 ? p.E / p.B : null;
+      return p;
+    }).filter((p) => p.B || p.R || p.O || p.P || p.F);
+    list.sort((a, b) => (a.key === NO_POST) - (b.key === NO_POST) || b.E - a.E || a.label.localeCompare(b.label, "nl"));
+
+    const sum = (k) => list.reduce((s, p) => s + p[k], 0);
+    const tot = { B: hasBudgetPerPost ? sum("B") : (state.settings.totaalBudget || 0), R: sum("R"), O: sum("O"), P: sum("P"), F: sum("F"), E: sum("E") };
+    tot.hasB = hasBudgetPerPost || !!state.settings.totaalBudget;
+    tot.ruimte = tot.hasB ? tot.B - tot.E : null;
+    tot.ratio = tot.hasB && tot.B > 0 ? tot.E / tot.B : null;
+    tot.betaald = facturen.filter((f) => f.betaald).reduce((s, f) => s + (f.bedrag || 0), 0);
+
+    const drempel = (state.settings.drempel || 90) / 100;
+    const level = (ratio) => ratio == null ? null : ratio > 1.0005 ? "bad" : ratio >= drempel ? "warn" : "ok";
+    list.forEach((p) => { p.level = level(p.ratio); });
+    tot.level = level(tot.ratio);
+
+    return { list, tot, offertes, facturen, budget, raming, drempel, hasBudgetPerPost };
+  }
+
+  function signalsOf(c) {
+    const s = [];
+    const { tot, list, offertes, facturen, drempel } = c;
+    if (tot.level === "bad") s.push({ lv: "bad", t: "Prognose boven budget", d: "Verwachte eindkosten " + fmt0(tot.E) + " tegen budget " + fmt0(tot.B) + " (" + fmt0(-tot.ruimte) + " tekort)." });
+    else if (tot.level === "warn") s.push({ lv: "warn", t: "Budget bijna op", d: "Prognose is " + pct0.format(tot.ratio) + " van het budget; signaal staat op " + pct0.format(drempel) + "." });
+    list.forEach((p) => {
+      if (p.key === NO_POST) return;
+      if (p.level === "bad") s.push({ lv: "bad", t: p.label + ": boven budget", d: "Prognose " + fmt0(p.E) + ", budget " + fmt0(p.B) + "." });
+      else if (p.level === "warn") s.push({ lv: "warn", t: p.label + ": " + pct0.format(p.ratio) + " van budget", d: "Nog " + fmt0(p.ruimte) + " ruimte." });
+      if (c.hasBudgetPerPost && !p.hasB && p.E > 0) s.push({ lv: "warn", t: p.label + ": geen budget", d: "Kosten " + fmt0(p.E) + " vallen op een post die niet in het budget staat." });
+      if (p.R > 0 && p.O > p.R * 1.0005) s.push({ lv: "warn", t: p.label + ": opdracht boven raming", d: "Opdracht " + fmt0(p.O) + " tegen raming " + fmt0(p.R) + " (+" + fmt0(p.O - p.R) + ")." });
+    });
+    offertes.forEach((o) => {
+      if (o.nFact && o.gefact > (o.bedrag || 0) + 0.5) s.push({ lv: "bad", t: "Offerte " + o.nummer + " overschreden", d: "Gefactureerd " + fmt2(o.gefact) + " op een offerte van " + fmt2(o.bedrag) + "." });
+      if (o.nFact && o.st !== "opdracht") s.push({ lv: "warn", t: "Factuur op offerte " + o.nummer + " zonder opdracht", d: "De offerte staat op ‘" + OFF_LABEL[o.st].toLowerCase() + "’, maar er is al gefactureerd." });
+    });
+    const unknownRef = facturen.filter((f) => f.offerte && !f.off);
+    unknownRef.forEach((f) => s.push({ lv: "warn", t: "Factuur " + (f.nummer || "zonder nummer") + ": offerte onbekend", d: "Verwijst naar ‘" + f.offerte + "’, die niet in het offerteoverzicht staat (" + fmt2(f.bedrag) + ")." }));
+    const noRef = facturen.filter((f) => !f.offerte);
+    if (noRef.length && offertes.length) s.push({ lv: "warn", t: noRef.length + " facturen zonder offertenummer", d: "Samen " + fmt0(noRef.reduce((a, f) => a + (f.bedrag || 0), 0)) + "; controle tegen offerte is niet mogelijk." });
+    const noPostF = facturen.filter((f) => f.postKey === NO_POST), noPostO = offertes.filter((o) => o.postKey === NO_POST && o.st !== "vervallen");
+    if (noPostO.length) s.push({ lv: "warn", t: noPostO.length + " offertes zonder kostenpost", d: "Samen " + fmt0(noPostO.reduce((a, o) => a + (o.bedrag || 0), 0)) + ". Wijs een post toe bij Offertes." });
+    if (noPostF.length) s.push({ lv: "warn", t: noPostF.length + " facturen zonder kostenpost", d: "Samen " + fmt0(noPostF.reduce((a, f) => a + (f.bedrag || 0), 0)) + ". Wijs een post toe bij Facturen." });
+    const dupes = new Map();
+    facturen.forEach((f) => { if (f.nummer) { const k = normRef(f.nummer); dupes.set(k, (dupes.get(k) || 0) + 1); } });
+    [...dupes].filter(([, n]) => n > 1).forEach(([k]) => s.push({ lv: "bad", t: "Factuurnummer dubbel", d: "Factuur " + facturen.find((f) => normRef(f.nummer) === k).nummer + " komt meer dan eens voor." }));
+    if (!c.hasBudgetPerPost && !state.settings.totaalBudget && (tot.E > 0)) s.push({ lv: "warn", t: "Geen budget ingesteld", d: "Importeer het kostenbudget of vul een totaalbudget in bij Importeren." });
+    const order = { bad: 0, warn: 1 };
+    return s.sort((a, b) => order[a.lv] - order[b.lv]);
+  }
+
+  // ---------- rendering ----------
+  let last = null;
+  function render() {
+    const c = compute();
+    last = c;
+    const anyData = SET_ORDER.some((k) => rowsOf(k).length);
+    const proj = state.settings.project || "Verkeersmaatregelen BUKO";
+    $("projTitle").textContent = proj;
+    const dates = SET_ORDER.map((k) => metaOf(k) && metaOf(k).at).filter(Boolean).sort();
+    $("standLine").textContent = dates.length ? "Laatste import " + new Date(dates[dates.length - 1]).toLocaleString("nl-NL", { dateStyle: "medium", timeStyle: "short" }) : "Nog geen bestanden geïmporteerd";
+    $("exampleBanner").hidden = !SET_ORDER.some((k) => metaOf(k) && metaOf(k).example);
+    $("btnClearExample").hidden = !canWrite;
+    $("btnExport").hidden = !anyData;
+    $("cnt-offertes").textContent = c.offertes.length ? c.offertes.length : "";
+    $("cnt-facturen").textContent = c.facturen.length ? c.facturen.length : "";
+
+    renderKpis(c, anyData);
+    renderBbar(c);
+    renderPostTable(c);
+    renderSignals(c, anyData);
+    renderChart(c);
+    renderOffertes(c);
+    renderFacturen(c);
+    renderRaming(c);
+    renderStatus();
+  }
+
+  function kpi(label, val, sub, lv) {
+    return h("div", { class: "kpi" + (lv ? " state-" + lv : "") }, h("div", { class: "eyebrow", text: label }), h("div", { class: "val", text: val, title: val }), h("div", { class: "sub", text: sub || "" }));
+  }
+  function renderKpis(c) {
+    const { tot } = c;
+    const el = $("kpis"); el.replaceChildren();
+    el.append(
+      kpi("Budget", tot.hasB ? fmt0(tot.B) : "—", c.hasBudgetPerPost ? c.budget.length + " posten" : (state.settings.totaalBudget ? "Totaalbudget" : "Nog niet ingesteld")),
+      kpi("Prognose eindkosten", fmt0(tot.E), tot.ratio != null ? pct0.format(tot.ratio) + " van budget" : "Raming, opdracht of factuur", tot.level),
+      kpi(tot.ruimte != null && tot.ruimte < 0 ? "Tekort" : "Ruimte", tot.ruimte != null ? fmt0(Math.abs(tot.ruimte)) : "—", tot.ruimte != null ? (tot.ruimte < 0 ? "Boven budget" : "Budget min prognose") : "Geen budget", tot.level),
+      kpi("Raming", fmt0(tot.R), c.raming.length + " regels"),
+      kpi("Opdracht verleend", fmt0(tot.O), (tot.P ? fmt0(tot.P) + " nog in behandeling" : c.offertes.filter((o) => o.st === "opdracht").length + " offertes")),
+      kpi("Gefactureerd", fmt0(tot.F), (tot.O ? pct0.format(tot.F / tot.O) + " van opdracht · " : "") + fmt0(tot.betaald) + " betaald")
+    );
+  }
+
+  function renderBbar(c) {
+    const { tot } = c;
+    const bar = $("bbar"), leg = $("bbarLegend"); bar.replaceChildren(); leg.replaceChildren();
+    const F = Math.max(tot.F, 0), O = Math.max(tot.O - tot.F, 0), Rr = Math.max(tot.E - Math.max(tot.O, tot.F), 0);
+    const used = F + O + Rr;
+    const B = tot.hasB ? tot.B : 0;
+    const scale = Math.max(B, used, 1);
+    const pctw = (v) => (v / scale * 100) + "%";
+    const segs = [
+      { v: F, c: "var(--s-fact)", l: "Gefactureerd" },
+      { v: O, c: "var(--s-opdr)", l: "Opdracht, nog te factureren" },
+      { v: Rr, c: "var(--s-ram)", l: "Resterend volgens raming" }
+    ];
+    let acc = 0;
+    segs.forEach((s) => {
+      if (s.v <= 0) return;
+      const inBudget = B ? Math.max(Math.min(s.v, B - acc), 0) : s.v;
+      const over = s.v - inBudget;
+      if (inBudget > 0) bar.append(h("div", { class: "seg", style: "width:" + pctw(inBudget) + ";background:" + s.c, title: s.l + ": " + fmt0(s.v) }));
+      if (over > 0) bar.append(h("div", { class: "seg over", style: "width:" + pctw(over), title: s.l + " boven budget: " + fmt0(over) }));
+      acc += s.v;
+    });
+    if (B) {
+      const right = B / scale > 0.75;
+      bar.append(h("div", { class: "mark" + (right ? " right" : ""), style: "left:calc(" + pctw(B) + " - 1px)" }, h("span", { text: "Budget " + fmt0(B) })));
+    }
+    $("bbarNote").textContent = B ? (used > B ? "Overschrijding " + fmt0(used - B) : "Vrij " + fmt0(B - used)) : "Stel een budget in om de ruimte te zien";
+    segs.forEach((s) => leg.append(h("span", null, h("i", { style: "background:" + s.c }), s.l + " ", h("span", { class: "num", text: fmt0(s.v) }))));
+    if (B && used < B) leg.append(h("span", null, h("i", { style: "background:var(--s-free);border:1px solid var(--line)" }), "Vrije ruimte ", h("span", { class: "num", text: fmt0(B - used) })));
+    if (B && used > B) leg.append(h("span", null, h("i", { class: "over", style: "background:repeating-linear-gradient(-45deg,var(--bad) 0 3px,var(--bad-bg) 3px 6px)" }), "Boven budget ", h("span", { class: "num", text: fmt0(used - B) })));
+  }
+
+  function levelPill(p) {
+    if (p.level == null) return h("span", { class: "pill neutral", text: p.key === NO_POST ? "Toewijzen" : "Geen budget" });
+    const t = { ok: "Binnen budget", warn: pct0.format(p.ratio), bad: "Overschreden" }[p.level];
+    return h("span", { class: "pill " + p.level, text: t });
+  }
+  function renderPostTable(c) {
+    const t = $("postTable"); t.replaceChildren();
+    if (!c.list.length) { t.append(h("tbody", null, h("tr", null, h("td", { class: "empty-state", text: "Nog geen kosten. Importeer bestanden om per post te bewaken." })))); return; }
+    t.append(h("thead", null, h("tr", null,
+      h("th", { text: "Kostenpost" }), h("th", { class: "r", text: "Budget" }), h("th", { class: "r", text: "Raming" }), h("th", { class: "r", text: "Opdracht" }),
+      h("th", { class: "r", text: "Gefactureerd" }), h("th", { class: "r", text: "Prognose" }), h("th", { class: "r", text: "Ruimte" }), h("th", { text: "Verloop" }), h("th", { text: "Status" }))));
+    const tb = h("tbody");
+    const maxScale = Math.max(...c.list.map((p) => Math.max(p.B, p.E)), 1);
+    c.list.forEach((p) => {
+      const mb = h("div", { class: "minibar", title: "Prognose " + fmt0(p.E) + (p.hasB ? " · budget " + fmt0(p.B) : "") + " · gefactureerd " + fmt0(p.F) });
+      mb.append(h("div", { class: "p" + (p.level === "bad" ? " over" : ""), style: "width:" + (p.E / maxScale * 100) + "%" }));
+      mb.append(h("div", { class: "f", style: "width:" + (Math.max(p.F, 0) / maxScale * 100) + "%" }));
+      if (p.hasB) mb.append(h("div", { class: "b", style: "left:" + (p.B / maxScale * 100) + "%" }));
+      tb.append(h("tr", { class: p.key === NO_POST ? "dim" : null },
+        h("td", { text: p.label || "(leeg)" }),
+        h("td", { class: "r", text: p.hasB ? fmt0(p.B) : "—" }),
+        h("td", { class: "r", text: p.R ? fmt0(p.R) : "—" }),
+        h("td", { class: "r", text: p.O ? fmt0(p.O) : "—", title: p.P ? fmt0(p.P) + " in behandeling" : null }),
+        h("td", { class: "r", text: p.F ? fmt0(p.F) : "—" }),
+        h("td", { class: "r", text: fmt0(p.E) }),
+        h("td", { class: "r" }, p.ruimte == null ? "—" : h("span", { class: p.ruimte < 0 ? "neg" : null, text: fmt0(p.ruimte) })),
+        h("td", null, mb),
+        h("td", null, levelPill(p))
+      ));
+    });
+    const T = c.tot;
+    tb.append(h("tr", { class: "total" },
+      h("td", { text: "Totaal" }), h("td", { class: "r", text: T.hasB ? fmt0(T.B) : "—" }), h("td", { class: "r", text: fmt0(T.R) }), h("td", { class: "r", text: fmt0(T.O) }),
+      h("td", { class: "r", text: fmt0(T.F) }), h("td", { class: "r", text: fmt0(T.E) }),
+      h("td", { class: "r" }, T.ruimte == null ? "—" : h("span", { class: T.ruimte < 0 ? "neg" : null, text: fmt0(T.ruimte) })), h("td"), h("td", null, T.level ? h("span", { class: "pill " + T.level, text: T.level === "ok" ? "Binnen budget" : T.level === "warn" ? pct0.format(T.ratio) : "Overschreden" }) : "")));
+    t.append(tb);
+  }
+
+  function renderSignals(c, anyData) {
+    const ul = $("signals"); ul.replaceChildren();
+    const s = anyData ? signalsOf(c) : [];
+    $("sigCount").textContent = s.length ? s.length + (s.length === 1 ? " punt" : " punten") : "";
+    if (!s.length) { ul.append(h("li", { class: "empty", text: anyData ? "Geen afwijkingen gevonden." : "Na het importeren verschijnen hier overschrijdingen, facturen boven offerte en ontbrekende koppelingen." })); return; }
+    s.slice(0, 40).forEach((x) => ul.append(h("li", null, h("span", { class: "pill " + x.lv, text: x.lv === "bad" ? "Actie" : "Let op" }), h("div", null, h("strong", { text: x.t }), h("div", { class: "small muted", text: x.d })))));
+    if (s.length > 40) ul.append(h("li", { class: "empty", text: "En nog " + (s.length - 40) + " punten. Zie de export." }));
+  }
+
+  // kostenverloop
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs) { const el = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v); return el; }
+  function renderChart(c) {
+    const box = $("chart"), leg = $("chartLegend"); box.replaceChildren(); leg.replaceChildren();
+    const fact = c.facturen.filter((f) => f.datum).map((f) => ({ d: f.datum, v: f.bedrag || 0 }));
+    const opdr = c.offertes.filter((o) => o.datum && o.st === "opdracht").map((o) => ({ d: o.datum, v: o.bedrag || 0 }));
+    const missing = c.facturen.filter((f) => !f.datum).length + c.offertes.filter((o) => o.st === "opdracht" && !o.datum).length;
+    $("chartNote").textContent = missing ? missing + " regels zonder datum tellen niet mee in deze grafiek." : "";
+    if (!fact.length && !opdr.length) { box.append(h("div", { class: "empty-state", text: "Geen offertes of facturen met datum om een verloop te tonen." })); return; }
+    const cum = (arr) => { const s = arr.slice().sort((a, b) => a.d.localeCompare(b.d)); let t = 0; return s.map((x) => ({ d: x.d, t: (t += x.v) })); };
+    const sF = cum(fact), sO = cum(opdr);
+    const all = [...sF, ...sO].map((x) => x.d).sort();
+    const toT = (d) => Date.parse(d + "T12:00:00Z");
+    let x0 = toT(all[0]), x1 = Math.max(toT(all[all.length - 1]), Date.now());
+    x0 -= 5 * 86400e3; if (x1 - x0 < 30 * 86400e3) x1 = x0 + 30 * 86400e3;
+    const B = c.tot.hasB ? c.tot.B : 0;
+    const yMax = Math.max(B, sF.length ? sF[sF.length - 1].t : 0, sO.length ? sO[sO.length - 1].t : 0, c.tot.E) * 1.08 || 1;
+    const W = Math.max(box.clientWidth || 700, 320), H = W < 500 ? 220 : 260, m = { l: 64, r: 16, t: 14, b: 26 };
+    const X = (t) => m.l + (t - x0) / (x1 - x0) * (W - m.l - m.r);
+    const Y = (v) => m.t + (1 - v / yMax) * (H - m.t - m.b);
+    const s = svg("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img", "aria-label": "Cumulatief verloop van opdrachten en facturen" });
+    // grid + y-ticks
+    const step = niceStep(yMax / 4);
+    for (let v = 0; v <= yMax; v += step) {
+      s.append(svg("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: "var(--line)", "stroke-width": 1 }));
+      const tx = svg("text", { x: m.l - 6, y: Y(v) + 4, "text-anchor": "end" }); tx.textContent = shortEur(v); s.append(tx);
+    }
+    // x-ticks (maanden)
+    const months = [];
+    const d0 = new Date(x0); let md = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1));
+    while (md.getTime() <= x1) { months.push(md.getTime()); md = new Date(Date.UTC(md.getUTCFullYear(), md.getUTCMonth() + 1, 1)); }
+    const every = Math.ceil(months.length / Math.max(Math.floor((W - m.l) / 70), 1));
+    months.forEach((t, i) => {
+      if (i % every) return;
+      const tx = svg("text", { x: X(t), y: H - 8, "text-anchor": "middle" });
+      tx.textContent = new Date(t).toLocaleDateString("nl-NL", { month: "short", year: "2-digit", timeZone: "UTC" }); s.append(tx);
+    });
+    if (B) {
+      s.append(svg("line", { x1: m.l, x2: W - m.r, y1: Y(B), y2: Y(B), stroke: "var(--bad)", "stroke-width": 1.5, "stroke-dasharray": "6 4" }));
+      const tx = svg("text", { x: W - m.r, y: Y(B) - 5, "text-anchor": "end", style: "fill:var(--bad);font-weight:700" }); tx.textContent = "Budget " + shortEur(B); s.append(tx);
+    }
+    const stepPath = (pts) => {
+      if (!pts.length) return "";
+      let d = "M" + X(x0) + "," + Y(0);
+      pts.forEach((p) => { d += "H" + X(toT(p.d)) + "V" + Y(p.t); });
+      return d + "H" + X(Math.min(Date.now(), x1));
+    };
+    if (sO.length) s.append(svg("path", { d: stepPath(sO), fill: "none", stroke: "var(--s-opdr)", "stroke-width": 2.5 }));
+    if (sF.length) {
+      const d = stepPath(sF);
+      s.append(svg("path", { d: d + "V" + Y(0) + "Z", fill: "var(--s-fact)", "fill-opacity": 0.12, stroke: "none" }));
+      s.append(svg("path", { d, fill: "none", stroke: "var(--s-fact)", "stroke-width": 2.5 }));
+      const lp = sF[sF.length - 1];
+      s.append(svg("circle", { cx: X(Math.min(Date.now(), x1)), cy: Y(lp.t), r: 4, fill: "var(--s-fact)" }));
+    }
+    const today = svg("line", { x1: X(Date.now()), x2: X(Date.now()), y1: m.t, y2: H - m.b, stroke: "var(--muted)", "stroke-width": 1, "stroke-dasharray": "2 3" });
+    s.append(today);
+    const cross = svg("line", { y1: m.t, y2: H - m.b, stroke: "var(--ink)", "stroke-width": 1, opacity: 0 });
+    s.append(cross);
+    box.append(s);
+    const tip = h("div", { class: "tip", hidden: true }); box.append(tip);
+    const at = (pts, t) => { let v = 0; for (const p of pts) { if (toT(p.d) <= t) v = p.t; else break; } return v; };
+    s.addEventListener("pointermove", (e) => {
+      const r = s.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width * W;
+      if (px < m.l || px > W - m.r) { tip.hidden = true; cross.setAttribute("opacity", 0); return; }
+      const t = x0 + (px - m.l) / (W - m.l - m.r) * (x1 - x0);
+      cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("opacity", 0.4);
+      tip.replaceChildren(
+        h("div", { style: "font-weight:700", text: new Date(t).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) }),
+        h("div", null, "Opdracht ", h("span", { class: "num", text: fmt0(at(sO, t)) })),
+        h("div", null, "Gefactureerd ", h("span", { class: "num", text: fmt0(at(sF, t)) })));
+      tip.hidden = false;
+      const bx = box.clientWidth, left = (e.clientX - r.left) + 12;
+      tip.style.left = Math.min(left, bx - tip.offsetWidth - 4) + "px"; tip.style.top = "8px";
+    });
+    s.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("opacity", 0); });
+    leg.append(
+      h("span", null, h("i", { style: "background:var(--s-opdr)" }), "Opdracht verleend (cumulatief)"),
+      h("span", null, h("i", { style: "background:var(--s-fact)" }), "Gefactureerd (cumulatief)"),
+      B ? h("span", null, h("i", { style: "background:var(--bad);height:3px;vertical-align:3px" }), "Budget") : null);
+  }
+  function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw || 1))); const n = raw / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+  function shortEur(v) { return v >= 1e6 ? "€ " + (v / 1e6).toLocaleString("nl-NL", { maximumFractionDigits: 1 }) + " mln" : v >= 1e3 ? "€ " + Math.round(v / 1e3).toLocaleString("nl-NL") + "k" : "€ " + Math.round(v); }
+
+  function postOptions(c) {
+    const set = new Map();
+    c.list.forEach((p) => { if (p.key !== NO_POST) set.set(p.key, p.label); });
+    return [...set.values()].sort((a, b) => a.localeCompare(b, "nl"));
+  }
+  function postCell(c, setName, r) {
+    if (r.own) return h("td", { text: r.postLabel });
+    if (!canWrite) return h("td", { class: r.postKey === NO_POST ? "muted" : null, text: r.postLabel || "—" });
+    const sel = h("select", { "aria-label": "Kostenpost", onchange: (e) => assignPost(setName, r.key, e.target.value) },
+      h("option", { value: "", text: r.via ? "Via offerte: " + r.postLabel : "— kies post —" }),
+      postOptions(c).map((l) => h("option", { value: l, text: l, selected: !r.via && normKey(l) === r.postKey })));
+    return h("td", null, sel);
+  }
+  function renderOffertes(c) {
+    const t = $("offTable"); t.replaceChildren();
+    const q = normKey($("qOff").value), f = $("fOff").value;
+    const rows = c.offertes.filter((o) => (!f || o.st === f) && (!q || normKey([o.nummer, o.omschrijving, o.postLabel, o.leverancier].join(" ")).includes(q)));
+    if (!c.offertes.length) { t.append(h("tbody", null, h("tr", null, h("td", { class: "empty-state", text: "Nog geen offerteoverzicht geïmporteerd." })))); return; }
+    t.append(h("thead", null, h("tr", null, h("th", { text: "Nummer" }), h("th", { text: "Datum" }), h("th", { text: "Omschrijving" }), h("th", { text: "Kostenpost" }), h("th", { text: "Status" }), h("th", { class: "r", text: "Offerte" }), h("th", { class: "r", text: "Gefactureerd" }), h("th", { class: "r", text: "Restant" }))));
+    const tb = h("tbody");
+    rows.forEach((o) => {
+      const rest = (o.bedrag || 0) - o.gefact;
+      tb.append(h("tr", { class: o.st === "vervallen" ? "dim" : null },
+        h("td", { class: "num", text: o.nummer || "—" }), h("td", { class: "num", text: fmtDate(o.datum) }),
+        h("td", { text: o.omschrijving || "" }), postCell(c, "offertes", o),
+        h("td", null, h("span", { class: "pill " + OFF_PILL[o.st], text: OFF_LABEL[o.st] })),
+        h("td", { class: "r", text: fmt2(o.bedrag) }), h("td", { class: "r", text: o.nFact ? fmt2(o.gefact) : "—" }),
+        h("td", { class: "r" }, o.nFact ? h("span", { class: rest < -0.5 ? "neg" : null, text: fmt2(rest) }) : "—")));
+    });
+    const sumB = rows.reduce((s, o) => s + (o.bedrag || 0), 0), sumF = rows.reduce((s, o) => s + o.gefact, 0);
+    tb.append(h("tr", { class: "total" }, h("td", { text: rows.length + " offertes" }), h("td"), h("td"), h("td"), h("td"), h("td", { class: "r", text: fmt2(sumB) }), h("td", { class: "r", text: fmt2(sumF) }), h("td")));
+    t.append(tb);
+  }
+  function renderFacturen(c) {
+    const t = $("facTable"); t.replaceChildren();
+    const q = normKey($("qFac").value), f = $("fFac").value;
+    const rows = c.facturen.filter((x) => (!f || (f === "open" && !x.betaald) || (f === "betaald" && x.betaald) || (f === "zonderofferte" && !x.off)) && (!q || normKey([x.nummer, x.offerte, x.omschrijving, x.postLabel, x.leverancier].join(" ")).includes(q)));
+    if (!c.facturen.length) { t.append(h("tbody", null, h("tr", null, h("td", { class: "empty-state", text: "Nog geen facturenoverzicht geïmporteerd." })))); return; }
+    t.append(h("thead", null, h("tr", null, h("th", { text: "Nummer" }), h("th", { text: "Datum" }), h("th", { text: "Offerte" }), h("th", { text: "Omschrijving" }), h("th", { text: "Kostenpost" }), h("th", { text: "Betaald" }), h("th", { class: "r", text: "Bedrag" }))));
+    const tb = h("tbody");
+    rows.forEach((x) => {
+      tb.append(h("tr", null,
+        h("td", { class: "num", text: x.nummer || "—" }), h("td", { class: "num", text: fmtDate(x.datum) }),
+        h("td", null, x.offerte ? (x.off ? h("span", { class: "num", text: x.offerte }) : h("span", { class: "pill warn", text: x.offerte + " onbekend" })) : h("span", { class: "pill neutral", text: "Geen" })),
+        h("td", { text: x.omschrijving || "" }), postCell(c, "facturen", x),
+        h("td", null, h("span", { class: "pill " + (x.betaald ? "ok" : "neutral"), text: x.betaald ? "Betaald" : "Open" })),
+        h("td", { class: "r" }, h("span", { class: (x.bedrag || 0) < 0 ? "neg" : null, text: fmt2(x.bedrag) }))));
+    });
+    tb.append(h("tr", { class: "total" }, h("td", { text: rows.length + " facturen" }), h("td"), h("td"), h("td"), h("td"), h("td"), h("td", { class: "r", text: fmt2(rows.reduce((s, x) => s + (x.bedrag || 0), 0)) })));
+    t.append(tb);
+  }
+  function srcLine(set) { const m = metaOf(set); return m ? (m.example ? "Voorbeeld" : (m.file || "") + (m.sheet ? " · " + m.sheet : "")) : "Niet geïmporteerd"; }
+  function renderRaming(c) {
+    $("budgetSrc").textContent = srcLine("budget");
+    $("ramSrc").textContent = srcLine("raming");
+    const bt = $("budTable"); bt.replaceChildren();
+    if (!c.budget.length) bt.append(h("tbody", null, h("tr", null, h("td", { class: "empty-state", text: state.settings.totaalBudget ? "Geen budget per post; het totaalbudget van " + fmt0(state.settings.totaalBudget) + " uit de instellingen wordt gebruikt." : "Nog geen budget. Importeer het kostenbudget of vul een totaalbudget in bij Importeren." }))));
+    else {
+      bt.append(h("thead", null, h("tr", null, h("th", { text: "Kostenpost" }), h("th", { class: "r", text: "Budget" }))));
+      const tb = h("tbody"); c.budget.forEach((r) => tb.append(h("tr", null, h("td", { text: r.post }), h("td", { class: "r", text: fmt2(r.bedrag) }))));
+      tb.append(h("tr", { class: "total" }, h("td", { text: "Totaal" }), h("td", { class: "r", text: fmt2(c.budget.reduce((s, r) => s + (r.bedrag || 0), 0)) })));
+      bt.append(tb);
+    }
+    const rt = $("ramTable"); rt.replaceChildren();
+    if (!c.raming.length) { rt.append(h("tbody", null, h("tr", null, h("td", { class: "empty-state", text: "Nog geen kostenraming geïmporteerd." })))); return; }
+    rt.append(h("thead", null, h("tr", null, h("th", { text: "Code" }), h("th", { text: "Kostenpost" }), h("th", { text: "Omschrijving" }), h("th", { class: "r", text: "Hoeveelheid" }), h("th", { text: "Eenheid" }), h("th", { class: "r", text: "Prijs" }), h("th", { class: "r", text: "Bedrag" }))));
+    const tb = h("tbody");
+    c.raming.forEach((r) => tb.append(h("tr", null, h("td", { class: "num", text: r.code || "" }), h("td", { text: r.post || "" }), h("td", { text: r.omschrijving || "" }),
+      h("td", { class: "r", text: r.hoeveelheid != null ? r.hoeveelheid.toLocaleString("nl-NL") : "" }), h("td", { text: r.eenheid || "" }),
+      h("td", { class: "r", text: r.prijs != null ? fmt2(r.prijs) : "" }), h("td", { class: "r", text: fmt2(r.bedrag) }))));
+    tb.append(h("tr", { class: "total" }, h("td", { text: "Totaal" }), h("td"), h("td"), h("td"), h("td"), h("td"), h("td", { class: "r", text: fmt2(c.raming.reduce((s, r) => s + (r.bedrag || 0), 0)) })));
+    rt.append(tb);
+  }
+
+  let profileCache = {};
+  async function renderStatus() {
+    const g = $("statusGrid"); g.replaceChildren();
+    SET_ORDER.forEach((k) => {
+      const m = metaOf(k), n = rowsOf(k).length;
+      const card = h("div", { class: "statuscard" },
+        h("div", { class: "eyebrow", text: SETS[k].label }),
+        m ? h("div", { class: "file", text: m.example ? "Voorbeeldgegevens" : (m.file || "—") }) : h("div", { class: "muted", text: "Nog niet geïmporteerd" }),
+        m ? h("div", { class: "small muted", text: n + " regels · " + new Date(m.at).toLocaleString("nl-NL", { dateStyle: "medium", timeStyle: "short" }) + (m.by && profileCache[m.by] ? " · " + profileCache[m.by] : "") }) : null,
+        m && canWrite ? h("div", null, h("button", { type: "button", class: "danger", onclick: () => clearSet(k), text: "Wissen" })) : null);
+      g.append(card);
+    });
+    if (userCap) {
+      const ids = SET_ORDER.map((k) => metaOf(k) && metaOf(k).by).filter((id) => id && !(id in profileCache));
+      if (ids.length) {
+        try {
+          const ps = await userCap.profiles([...new Set(ids)]);
+          ids.forEach((id) => { profileCache[id] = (ps && ps[id] && ps[id].name) || ""; });
+          renderStatus();
+        } catch (e) { ids.forEach((id) => { profileCache[id] = ""; }); }
+      }
+    }
+  }
+
+  // ---------- tabs ----------
+  function showTab(name) {
+    state.tab = name;
+    document.querySelectorAll(".tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+    ["overzicht", "offertes", "facturen", "raming", "import"].forEach((v) => { $("view-" + v).hidden = v !== name; });
+    if (name === "overzicht" && last) renderChart(last);
+    try { localStorage.setItem("kb-tab", name); } catch (e) { /* geen opslag */ }
+  }
+  document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+  $("btnGoImport").addEventListener("click", () => showTab("import"));
+  ["qOff", "fOff"].forEach((id) => $(id).addEventListener("input", () => last && renderOffertes(last)));
+  ["qFac", "fFac"].forEach((id) => $(id).addEventListener("input", () => last && renderFacturen(last)));
+  let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => last && state.tab === "overzicht" && renderChart(last), 150); });
+
+  // ---------- import ----------
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => handleFiles(e.dataTransfer.files));
+  $("fileInput").addEventListener("change", (e) => { handleFiles(e.target.files); e.target.value = ""; });
+
+  function guessSet(name, headers) {
+    const n = name.toLowerCase();
+    if (/factu/.test(n)) return "facturen";
+    if (/offert/.test(n)) return "offertes";
+    if (/budget/.test(n)) return "budget";
+    if (/raming|begroting|calculat|kostenopzet/.test(n)) return "raming";
+    const hs = headers.map(normHeader).join(" | ");
+    if (/factuur/.test(hs)) return "facturen";
+    if (/offerte/.test(hs)) return "offertes";
+    if (/eenheidsprijs|hoeveelheid|eenheid/.test(hs)) return "raming";
+    if (/budget/.test(hs)) return "budget";
+    return "offertes";
+  }
+  function scoreHeader(field, hdr) {
+    const hn = normHeader(hdr); if (!hn) return 0;
+    let best = 0;
+    field.syn.forEach((syn, i) => {
+      const w = 1 - i * 0.02;
+      if (hn === syn) best = Math.max(best, 3 * w);
+      else if ((" " + hn + " ").includes(" " + syn + " ")) best = Math.max(best, 2 * w);
+      else if (syn.length > 4 && hn.includes(syn)) best = Math.max(best, 1.5 * w);
+    });
+    if (field.key === "bedrag" && /incl|btw bedrag|^btw$/.test(hn) && !/excl/.test(hn)) best = best ? 0.5 : 0;
+    return best;
+  }
+  function autoMap(set, headers) {
+    const pairs = [];
+    SETS[set].fields.forEach((f) => headers.forEach((hd, ci) => { const s = scoreHeader(f, hd); if (s > 0) pairs.push({ f: f.key, ci, s }); }));
+    pairs.sort((a, b) => b.s - a.s);
+    const map = {}, usedC = new Set();
+    pairs.forEach((p) => { if (!(p.f in map) && !usedC.has(p.ci)) { map[p.f] = p.ci; usedC.add(p.ci); } });
+    return map;
+  }
+  function detectHeaderRow(aoa) {
+    let best = 0, bestScore = -1;
+    const allSyn = SET_ORDER.flatMap((k) => SETS[k].fields);
+    for (let r = 0; r < Math.min(aoa.length, 30); r++) {
+      const row = aoa[r] || [];
+      const filled = row.filter((v) => v != null && String(v).trim() !== "").length;
+      if (filled < 2) continue;
+      let sc = 0;
+      row.forEach((v) => { if (typeof v === "string" && allSyn.some((f) => scoreHeader(f, v) >= 2)) sc++; });
+      if (sc > bestScore) { bestScore = sc; best = r; }
+    }
+    return best;
+  }
+
+  async function handleFiles(files) {
+    if (typeof XLSX === "undefined") { toast("De Excel-lezer is niet geladen. Herlaad de pagina en probeer opnieuw."); return; }
+    for (const file of [...files]) {
+      try {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: "array", cellDates: true });
+        addMapCard(file.name, wb);
+      } catch (e) {
+        toast(file.name + " kon niet worden gelezen. Is het een Excel- of CSV-bestand?");
+      }
+    }
+    showTab("import");
+  }
+
+  function addMapCard(fileName, wb) {
+    const card = h("div", { class: "panel mapcard" });
+    $("mapCards").prepend(card);
+    const st = { sheet: wb.SheetNames[0], set: null, headerRow: 0, map: {}, skipTotals: true, zonderStatus: "opdracht" };
+
+    function loadSheet() {
+      const ws = wb.Sheets[st.sheet];
+      st.aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: false });
+      st.headerRow = detectHeaderRow(st.aoa);
+      st.headers = (st.aoa[st.headerRow] || []).map((v, i) => v == null || String(v).trim() === "" ? "Kolom " + XLSX.utils.encode_col(i) : text(v));
+      if (!st.set) st.set = guessSet(fileName + " " + st.sheet, st.headers);
+      st.map = autoMap(st.set, st.headers);
+    }
+    loadSheet();
+
+    function build() {
+      card.replaceChildren();
+      const rows = mapRows(st);
+      const missing = SETS[st.set].fields.filter((f) => f.req && !(f.key in st.map));
+      const needPost = (st.set === "raming" && !("post" in st.map) && !("omschrijving" in st.map));
+      const needAmt = (st.set === "raming" && !("bedrag" in st.map) && !("hoeveelheid" in st.map && "prijs" in st.map));
+      const ok = !missing.length && !needPost && !needAmt && rows.length > 0;
+
+      card.append(h("header", null,
+        h("div", null, h("div", { class: "eyebrow", text: "Nieuw bestand" }), h("h2", { text: fileName })),
+        h("button", { type: "button", onclick: () => card.remove(), text: "Annuleren" })));
+
+      const top = h("div", { class: "mapgrid" },
+        h("label", null, "Dit is het", h("select", { onchange: (e) => { st.set = e.target.value; st.map = autoMap(st.set, st.headers); build(); } },
+          SET_ORDER.map((k) => h("option", { value: k, text: SETS[k].label, selected: k === st.set })))),
+        wb.SheetNames.length > 1 ? h("label", null, "Tabblad", h("select", { onchange: (e) => { st.sheet = e.target.value; loadSheet(); build(); } },
+          wb.SheetNames.map((n) => h("option", { value: n, text: n, selected: n === st.sheet })))) : null,
+        h("label", null, "Kopregel", h("select", { onchange: (e) => { st.headerRow = +e.target.value; st.headers = (st.aoa[st.headerRow] || []).map((v, i) => v == null || String(v).trim() === "" ? "Kolom " + XLSX.utils.encode_col(i) : text(v)); st.map = autoMap(st.set, st.headers); build(); } },
+          st.aoa.slice(0, 30).map((r, i) => h("option", { value: i, selected: i === st.headerRow, text: "Rij " + (i + 1) + ": " + (r || []).filter((v) => v != null).slice(0, 4).map(text).join(" · ").slice(0, 60) })))));
+      card.append(top);
+
+      card.append(h("div", null, h("h3", { text: "Kolommen" }), h("p", { class: "note", style: "margin-top:2px", text: "Automatisch herkend; pas aan waar nodig." })));
+      const mg = h("div", { class: "mapgrid" });
+      SETS[st.set].fields.forEach((f) => {
+        mg.append(h("label", null, h("span", null, f.label, f.req ? h("span", { class: "req", text: " *" }) : null),
+          h("select", { onchange: (e) => { if (e.target.value === "") delete st.map[f.key]; else st.map[f.key] = +e.target.value; build(); } },
+            h("option", { value: "", text: "— niet in bestand —" }),
+            st.headers.map((hd, i) => h("option", { value: i, text: hd, selected: st.map[f.key] === i })))));
+      });
+      card.append(mg);
+
+      const opts = h("div", { class: "opts" },
+        h("label", null, h("input", { type: "checkbox", checked: st.skipTotals, onchange: (e) => { st.skipTotals = e.target.checked; build(); } }), "Totaal- en subtotaalregels overslaan"));
+      if (st.set === "offertes" && !("status" in st.map)) {
+        opts.append(h("label", null, "Offertes zonder status tellen als",
+          h("select", { onchange: (e) => { st.zonderStatus = e.target.value; } },
+            h("option", { value: "opdracht", text: "Opdracht", selected: st.zonderStatus === "opdracht" }),
+            h("option", { value: "behandeling", text: "In behandeling", selected: st.zonderStatus === "behandeling" }))));
+      }
+      card.append(opts);
+
+      // voorbeeld
+      const prevFields = SETS[st.set].fields.filter((f) => f.key in st.map || (st.set === "raming" && f.key === "bedrag"));
+      const pt = h("table", null, h("thead", null, h("tr", null, prevFields.map((f) => h("th", { class: f.key === "bedrag" || f.key === "prijs" || f.key === "hoeveelheid" ? "r" : null, text: f.label })))));
+      const pb = h("tbody");
+      rows.slice(0, 6).forEach((r) => pb.append(h("tr", null, prevFields.map((f) => {
+        const v = r[f.key];
+        if (f.key === "bedrag" || f.key === "prijs") return h("td", { class: "r", text: v == null ? "" : fmt2(v) });
+        if (f.key === "datum") return h("td", { class: "num", text: v ? fmtDate(v) : "" });
+        return h("td", { text: v == null ? "" : String(v) });
+      }))));
+      pt.append(pb);
+      const total = rows.reduce((s, r) => s + (r.bedrag || 0), 0);
+      card.append(h("div", null,
+        h("h3", { text: "Voorbeeld" }),
+        h("div", { class: "tablewrap" }, pt),
+        h("p", { class: "note", text: rows.length + " regels herkend, totaal " + fmt2(total) + (rows.length > 6 ? ". De eerste 6 staan hierboven." : ".") })));
+
+      const msgs = [];
+      if (missing.length) msgs.push("Kies een kolom voor: " + missing.map((f) => f.label).join(", ") + ".");
+      if (needPost) msgs.push("Kies een kolom voor Kostenpost of Omschrijving.");
+      if (needAmt) msgs.push("Kies een kolom voor Bedrag, of voor Hoeveelheid én Eenheidsprijs.");
+      if (!missing.length && !needPost && !needAmt && !rows.length) msgs.push("Er zijn geen regels met een bedrag gevonden. Controleer de kopregel.");
+      const has = rowsOf(st.set).length;
+      const btn = h("button", { type: "button", class: "primary", disabled: !ok || (db && !canWrite), onclick: async () => {
+        btn.disabled = true; btn.textContent = "Bezig met opslaan…";
+        try {
+          await saveSet(st.set, rows, { file: fileName, sheet: wb.SheetNames.length > 1 ? st.sheet : "", zonderStatus: st.set === "offertes" && !("status" in st.map) ? st.zonderStatus : "" });
+          card.remove(); toast(SETS[st.set].label + " geïmporteerd: " + rows.length + " regels"); showTab("overzicht");
+        } catch (e) {
+          btn.disabled = false; btn.textContent = "Opnieuw proberen";
+          toast(e && e.code === "quota_exceeded" ? "De opslag is vol. Wis een onderdeel en probeer opnieuw." : "Opslaan is niet gelukt. Probeer het opnieuw.");
+        }
+      }, text: has ? "Importeren en huidige " + SETS[st.set].label.toLowerCase() + " vervangen" : "Importeren" });
+      card.append(h("div", { class: "toolbar" }, btn, msgs.length ? h("span", { class: "small", style: "color:var(--bad)", text: msgs.join(" ") }) : null,
+        db && !canWrite ? h("span", { class: "small muted", text: "Je hebt alleen leesrechten op dit dashboard." }) : null));
+    }
+    build();
+  }
+
+  function mapRows(st) {
+    const out = [];
+    const fields = SETS[st.set].fields;
+    const numF = new Set(["bedrag", "prijs", "hoeveelheid"]);
+    for (let r = st.headerRow + 1; r < st.aoa.length; r++) {
+      const src = st.aoa[r] || [];
+      const row = {};
+      let any = false;
+      fields.forEach((f) => {
+        if (!(f.key in st.map)) return;
+        const v = src[st.map[f.key]];
+        let val;
+        if (numF.has(f.key)) val = parseNum(v);
+        else if (f.key === "datum") val = parseDate(v);
+        else val = text(v) || null;
+        if (val != null && val !== "") { row[f.key] = val; any = true; }
+      });
+      if (!any) continue;
+      if (st.set === "raming" && row.bedrag == null && row.hoeveelheid != null && row.prijs != null) row.bedrag = Math.round(row.hoeveelheid * row.prijs * 100) / 100;
+      if (row.bedrag == null) continue;
+      if (st.skipTotals) {
+        const txt = fields.filter((f) => !numF.has(f.key) && f.key !== "datum").map((f) => row[f.key] || "").join(" ").toLowerCase();
+        if (/(^|\s)(sub)?totaa?l|^totaal|totaal\s*$|eindtotaal|^btw\b|\bbtw\s*\d|^stelpost totaal/.test(txt.trim())) continue;
+      }
+      if (st.set === "budget" && !row.post) continue;
+      out.push(row);
+    }
+    return out;
+  }
+
+  // ---------- opslag ----------
+  async function serialWrite(path, fn) {
+    const prev = writeQueue[path] || Promise.resolve();
+    const next = prev.catch(() => {}).then(fn);
+    writeQueue[path] = next;
+    return next;
+  }
+  async function saveSet(set, rows, info) {
+    const meta = { set, file: info.file || "", sheet: info.sheet || "", at: new Date().toISOString(), rows: rows.length, zonderStatus: info.zonderStatus || "", example: false, by: "" };
+    if (!db) {
+      state.local = state.local || {};
+      state.local[set] = { rows, meta };
+      render(); return;
+    }
+    try { meta.by = userCap ? (await userCap.id()) || "" : ""; } catch (e) { /* zonder id */ }
+    const n = Math.max(1, Math.ceil(rows.length / CHUNK));
+    const oldN = (state.imports[set] && state.imports[set].chunks) || 0;
+    for (let i = 0; i < n; i++) {
+      const path = "chunks/" + set + "-" + i;
+      await serialWrite(path, () => db.doc(path).set({ set, n: i, rows: rows.slice(i * CHUNK, (i + 1) * CHUNK) }));
+    }
+    meta.chunks = n;
+    await serialWrite("imports/" + set, () => db.doc("imports/" + set).set(meta));
+    for (let i = n; i < oldN; i++) { const path = "chunks/" + set + "-" + i; await serialWrite(path, () => db.doc(path).delete()); }
+  }
+  async function clearSet(set) {
+    if (!db) { if (state.local) delete state.local[set]; render(); return; }
+    const oldN = (state.imports[set] && state.imports[set].chunks) || 0;
+    try {
+      await serialWrite("imports/" + set, () => db.doc("imports/" + set).delete());
+      for (let i = 0; i < oldN; i++) { const path = "chunks/" + set + "-" + i; await serialWrite(path, () => db.doc(path).delete()); }
+      toast(SETS[set].label + " gewist");
+    } catch (e) { toast("Wissen is niet gelukt. Probeer het opnieuw."); }
+  }
+  async function assignPost(set, key, post) {
+    const map = Object.assign({}, state.assign[set]);
+    if (post) map[key] = post; else delete map[key];
+    state.assign[set] = map; render();
+    if (!db) return;
+    try { await serialWrite("toewijzing/" + set, () => db.doc("toewijzing/" + set).set({ map })); }
+    catch (e) { toast("De kostenpost is niet opgeslagen. Probeer het opnieuw."); }
+  }
+  $("btnClearExample").addEventListener("click", async () => {
+    for (const k of SET_ORDER) if (metaOf(k) && metaOf(k).example) await clearSet(k);
+    if (db) {
+      try {
+        await serialWrite("toewijzing/offertes", () => db.doc("toewijzing/offertes").set({ map: {} }));
+        await serialWrite("toewijzing/facturen", () => db.doc("toewijzing/facturen").set({ map: {} }));
+      } catch (e) { /* niet kritiek */ }
+    }
+    showTab("import");
+  });
+
+  function fillSettingsForm() {
+    $("setProject").value = state.settings.project || "";
+    $("setBudget").value = state.settings.totaalBudget != null ? state.settings.totaalBudget : "";
+    $("setDrempel").value = state.settings.drempel || 90;
+  }
+  $("btnSaveSettings").addEventListener("click", async () => {
+    const s = { project: $("setProject").value.trim(), totaalBudget: parseNum($("setBudget").value), drempel: Math.min(Math.max(parseNum($("setDrempel").value) || 90, 50), 100) };
+    state.settings = s; render();
+    if (!db) { toast("Instellingen toegepast"); return; }
+    try { await serialWrite("bewaking/instellingen", () => db.doc("bewaking/instellingen").set(s)); toast("Instellingen opgeslagen"); }
+    catch (e) { toast("Opslaan is niet gelukt. Probeer het opnieuw."); }
+  });
+
+  // ---------- export ----------
+  $("btnExport").addEventListener("click", async () => {
+    if (!downloads || typeof XLSX === "undefined") { toast("Downloaden is in deze weergave niet beschikbaar."); return; }
+    const c = compute(), sig = signalsOf(c);
+    const wb = XLSX.utils.book_new();
+    const ov = c.list.map((p) => ({ Kostenpost: p.label, Budget: p.hasB ? p.B : null, Raming: p.R, Opdracht: p.O, "In behandeling": p.P, Gefactureerd: p.F, Prognose: p.E, Ruimte: p.ruimte, "% van budget": p.ratio }));
+    ov.push({ Kostenpost: "Totaal", Budget: c.tot.hasB ? c.tot.B : null, Raming: c.tot.R, Opdracht: c.tot.O, "In behandeling": c.tot.P, Gefactureerd: c.tot.F, Prognose: c.tot.E, Ruimte: c.tot.ruimte, "% van budget": c.tot.ratio });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ov), "Per kostenpost");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sig.map((s) => ({ Ernst: s.lv === "bad" ? "Actie" : "Let op", Punt: s.t, Toelichting: s.d }))), "Aandachtspunten");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(c.offertes.map((o) => ({ Nummer: o.nummer || "", Datum: o.datum || "", Leverancier: o.leverancier || "", Omschrijving: o.omschrijving || "", Kostenpost: o.postLabel, Status: OFF_LABEL[o.st], Bedrag: o.bedrag, Gefactureerd: o.gefact, Restant: (o.bedrag || 0) - o.gefact }))), "Offertes");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(c.facturen.map((f) => ({ Nummer: f.nummer || "", Datum: f.datum || "", Offerte: f.offerte || "", "Offerte gevonden": f.offerte ? (f.off ? "ja" : "nee") : "", Omschrijving: f.omschrijving || "", Kostenpost: f.postLabel, Betaald: f.betaald ? "ja" : "nee", Bedrag: f.bedrag }))), "Facturen");
+    const data = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const d = new Date().toISOString().slice(0, 10);
+    try { await downloads.save({ filename: "Kostenbewaking " + (state.settings.project || "BUKO verkeersmaatregelen") + " " + d + ".xlsx", data: new Uint8Array(data) }); }
+    catch (e) { if (e && e.code !== "declined") toast("Het bestand kon niet worden aangeboden."); }
+  });
+
+  // ---------- opstarten ----------
+  try { const t = localStorage.getItem("kb-tab"); if (t && $("view-" + t)) showTab(t); } catch (e) { /* geen opslag */ }
+  fillSettingsForm();
+  render();
+
+  (async function connect() {
+    if (!window.claude || !window.claude.use) { $("noDbBanner").hidden = false; return; }
+    const [d, u, dl] = await Promise.all([window.claude.use("db"), window.claude.use("user"), window.claude.use("downloads")]);
+    db = d; userCap = u; downloads = dl;
+    if (!db) { $("noDbBanner").hidden = false; render(); return; }
+    if (userCap) { try { const w = await userCap.can("data.write"); canWrite = w !== false; } catch (e) { /* onbekend: invoer houden */ } }
+    const onErr = () => { /* abonnement verbroken; pagina blijft de laatste stand tonen */ };
+    db.collection("imports").onSnapshot((snap) => {
+      const m = {}; snap.docs.forEach((doc) => { if (doc.exists) m[doc.id] = doc.data(); });
+      state.imports = m; render();
+    }, onErr);
+    db.collection("chunks").onSnapshot((snap) => {
+      const ch = {};
+      snap.docs.forEach((doc) => { const v = doc.data(); if (!v || !v.set) return; (ch[v.set] = ch[v.set] || {})[v.n] = v.rows || []; });
+      state.chunks = ch; render();
+    }, onErr);
+    db.collection("toewijzing").onSnapshot((snap) => {
+      const a = { offertes: {}, facturen: {} };
+      snap.docs.forEach((doc) => { if (doc.exists && a[doc.id]) a[doc.id] = Object.assign({}, (doc.data() || {}).map); });
+      state.assign = a; render();
+    }, onErr);
+    db.doc("bewaking/instellingen").onSnapshot((snap) => {
+      if (snap.exists) { state.settings = Object.assign({ project: "", totaalBudget: null, drempel: 90 }, snap.data()); fillSettingsForm(); render(); }
+    }, onErr);
+  })();
+})();
+</script>
